@@ -139,6 +139,7 @@ public class Justify extends JotifyConnection{
 	
 	private void download(Track track, java.io.File file, int bitrate) throws TimeoutException, IOException{
 
+		if (track.getFiles().size() == 0) return;
 		FileOutputStream fos = new FileOutputStream(file);
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate);
 
