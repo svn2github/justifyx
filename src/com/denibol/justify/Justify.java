@@ -156,7 +156,18 @@ public class Justify extends JotifyConnection{
 		return (os.indexOf( "win" ) >= 0); 
 	}
 
-	public static String sanearNombre(String nombre){ return (nombre == null ? null : (isWindows() ? nombre.replaceAll("\\\\", "/") : nombre.replaceAll("/", "\\\\"))); }
+	public static String sanearNombre(String nombre){
+		if(nombre==null) return null;
+
+		if(isWindows())
+			nombre.replaceAll("\\\\", "/");
+		else
+			nombre.replaceAll("/", "\\\\");
+
+		nombre = nombre.replace("[\\\\/:*?\"<>|]", "_");
+
+		return nombre;
+	}
 
 	public static String capitalize(String s) { return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase(); }
 
