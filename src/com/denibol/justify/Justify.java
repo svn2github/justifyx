@@ -17,14 +17,18 @@
 
 package com.denibol.justify;
 
+import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
 
 import de.felixbruns.jotify.JotifyConnection;
 import de.felixbruns.jotify.exceptions.AuthenticationException;
@@ -90,6 +94,16 @@ public class Justify extends JotifyConnection{
 					String directorio = replaceByReference(album, ALBUM_FORMAT);
 					for(Track track : album.getTracks()) justify.downloadTrack(track, directorio);
 					
+					// retrieve album cover
+					try{
+						URL coverurl = new URL("http://o.scdn.co/image/" + album.getCover());
+						BufferedImage coverimage = ImageIO.read(coverurl);
+						java.io.File coverfile = new java.io.File(directorio, "cover.jpg");
+						ImageIO.write(coverimage, "jpg", coverfile);
+					} catch(IOException e){
+						e.printStackTrace();
+					}		
+							
 				}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
 				
 			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Direccion de Spotify no valida"); }
