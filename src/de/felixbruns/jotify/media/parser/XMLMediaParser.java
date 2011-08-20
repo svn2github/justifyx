@@ -658,6 +658,24 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 				/* Set similar tracks. */
 				track.setSimilarTracks(similarTracks);
 			}
+            /* TODO: currently skipped. */
+            else if(name.equals("alternatives")){
+                    this.reader.next();
+                    name=this.reader.getLocalName();
+                   
+                    /* Go to next element and check if it is a start element. */
+                    while(name.equals("alternatives") == false){
+                           
+                            if(this.reader.next() != START_ELEMENT || this.reader.next() != END_ELEMENT) {
+                                    this.reader.next();
+                            }
+                            else if(this.reader.next() == CHARACTERS){
+                                    this.getElementString();
+                            }
+                           
+                            name=this.reader.getLocalName();
+                    }
+            }
 			else if(name.equals("external-ids")){
 				track.setExternalIds(parseExternalIds());
 			}
