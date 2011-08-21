@@ -161,11 +161,11 @@ public class Justify extends JotifyConnection{
 		if(nombre==null) return null;
 
 		if(isWindows())
-			nombre.replaceAll("\\\\", "/");
+			nombre = nombre.replaceAll("\\\\", "/");
 		else
-			nombre.replaceAll("/", "\\\\");
+			nombre = nombre.replaceAll("/", "\\\\");
 
-		nombre = nombre.replace("[\\\\/:*?\"<>|]", "_");
+		nombre = nombre.replaceAll("[\\\\/:*?\"<>|]", "_");
 
 		return nombre;
 	}
