@@ -120,18 +120,13 @@ public class Justify extends JotifyConnection{
 
 	private void downloadTrack(Track track, String parent) throws JustifyException, TimeoutException{
 		System.out.println(track);
+		
 		try{
 			String nombre = replaceByReference(track, TRACK_FORMAT);
-			String indexstring;
-			if(songindex<10)
-				indexstring = "0" + songindex.toString();
-			else
-				indexstring = songindex.toString();
-			java.io.File file = new java.io.File(sanearNombre(parent), indexstring + " " + sanearNombre(nombre));
+			java.io.File file = new java.io.File(sanearNombre(parent), (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(nombre));
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 				download(track, file, File.BITRATE_320); // bitrate maximo disponible
-			songindex++;
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
 		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */ }
 
