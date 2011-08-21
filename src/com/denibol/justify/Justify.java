@@ -49,7 +49,8 @@ public class Justify extends JotifyConnection{
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
 	private static String PLAYLIST_FORMAT = ":author: - :name:";
 	private static long TIMEOUT = 10; // en segundos
-	private static Integer discindex = 0;
+	private static Integer discindex = 1;
+	private static Integer oldtracknumber = 1;
 
 	public static void main(String args[]){
 		
@@ -120,9 +121,14 @@ public class Justify extends JotifyConnection{
 
 	private void downloadTrack(Track track, String parent) throws JustifyException, TimeoutException{
 		System.out.println(track);
-		if(track.getAlbum().getDiscs().size() > 1)
-			if(track.getTrackNumber() == 1)
+		
+		if(track.getAlbum().getDiscs().size() > 1) {
+			if(track.getTrackNumber() < oldtracknumber) {
 				discindex++;
+				oldtracknumber = 1;
+			} else oldtracknumber = track.getTrackNumber();
+		}
+		
 		try{
 			String nombre = replaceByReference(track, TRACK_FORMAT);
 			java.io.File file = new java.io.File(sanearNombre(parent), (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(nombre));
