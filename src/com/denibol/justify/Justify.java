@@ -42,6 +42,19 @@ import de.felixbruns.jotify.media.User;
 import de.felixbruns.jotify.media.Link.InvalidSpotifyURIException;
 import de.felixbruns.jotify.player.SpotifyInputStream;
 
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.FieldDataInvalidException;
+import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.KeyNotFoundException;
+import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
+
+
 public class Justify extends JotifyConnection{
 	
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
@@ -51,7 +64,9 @@ public class Justify extends JotifyConnection{
 	private static long TIMEOUT = 10; // en segundos
 	private static Integer discindex = 1;
 	private static Integer oldtracknumber = 1;
-
+	private AudioFile archivoAudio;
+	private Tag tag;
+	
 	public static void main(String args[]){
 		
 		if (args.length != 3){
@@ -135,9 +150,31 @@ public class Justify extends JotifyConnection{
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 				download(track, file, File.BITRATE_320); // bitrate maximo disponible
+
+			try {
+				archivoAudio = AudioFileIO.read(file);
+				tag = archivoAudio.getTag();
+				tag.setField(FieldKey.ARTIST, track.getArtist().getName());
+				tag.setField(FieldKey.ALBUM_ARTIST, track.getAlbum().getArtist().getName());
+				tag.setField(FieldKey.ALBUM, track.getAlbum().getName());
+				tag.setField(FieldKey.TITLE, track.getTitle());
+				tag.setField(FieldKey.YEAR, String.valueOf(track.getAlbum().getYear()));
+				tag.setField(FieldKey.TRACK, String.valueOf(track.getTrackNumber()));
+				// tag.setField(FieldKey.TRACK_TOTAL, String.valueOf(track.getAlbum().getTracks().size()));
+				tag.setField(FieldKey.DISC_NO, discindex.toString());
+				tag.setField(FieldKey.DISC_TOTAL, String.valueOf(track.getAlbum().getDiscs().size()));
+				archivoAudio.commit();
+			} catch (KeyNotFoundException e) { e.printStackTrace();
+			} catch (FieldDataInvalidException e) { e.printStackTrace();
+			} catch (CannotWriteException e) { e.printStackTrace();
+			} catch (CannotReadException e) { e.printStackTrace();
+			} catch (TagException e) { e.printStackTrace();
+			} catch (ReadOnlyFileException e) { e.printStackTrace();
+			} catch (InvalidAudioFrameException e) { e.printStackTrace();
+			}
+
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
 		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */ }
-
 		
 	}
 	
