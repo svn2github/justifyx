@@ -125,6 +125,7 @@ public class Justify extends JotifyConnection{
 								Image coverimage = justify.image(album.getCover());
 								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "cover.jpg");
 								ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
+								System.out.println("Descargada portada del album: " + album);
 							} catch (IOException e) { e.printStackTrace(); }		
 					}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
 				} else if(args[3].equals("cover")){
