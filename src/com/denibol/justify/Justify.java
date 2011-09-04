@@ -69,9 +69,12 @@ public class Justify extends JotifyConnection{
 	
 	public static void main(String args[]){
 		
-		if (args.length != 4 ){
-			System.err.println("[ERROR] Se esperan 4 parametros: nombre de usuario, password, comando y direccion Spotify para descargar.");
-			System.err.println("Posibles comandos: download (descargar pista/lista/album), cover (descargar portada de ‡lbum)");
+		if (args.length < 4 || args.length >5 ){
+			System.err.println("[ERROR] Se esperan los siguientes parametros: nombre de usuario, password, direccion Spotify para descargar y comandos.");
+			System.err.println("Comandos:");
+			System.err.println("    download: descargar pista/lista/album");
+			System.err.println("    download numero: descarga album comenzando por el numero de pista indicado");
+			System.err.println("    cover: descargar car‡tula del ‡lbum");
 			return;
 		}
 		
@@ -85,9 +88,9 @@ public class Justify extends JotifyConnection{
 			System.out.println(usuario);
 			if (!usuario.isPremium()) throw new JustifyException("[ERROR] Debes ser usuario 'premium'");
 			try{
-				Link uri = Link.create(args[3]);
+				Link uri = Link.create(args[2]);
 
-				if(args[2].equals("download")) {
+				if(args[3].equals("download")) {
 					if (uri.isTrackLink()){
 						
 						Track track = justify.browseTrack(uri.getId());
@@ -104,22 +107,27 @@ public class Justify extends JotifyConnection{
 						for(Track track : playlist.getTracks()) justify.downloadTrack(justify.browse(track), directorio);
 						
 					}else if(uri.isAlbumLink()){
-						
-						Album album = justify.browseAlbum(uri.getId());
-						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
-						System.out.println(album);
-						System.out.println("Contiene " + album.getTracks().size() + " pistas repartidas en " + album.getDiscs().size() + " disco(s)");
-						String directorio = replaceByReference(album, ALBUM_FORMAT);
-						for(Track track : album.getTracks()) justify.downloadTrack(track, directorio);
-						
-						try {
-							Image coverimage = justify.image(album.getCover());
-							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "cover.jpg");
-							ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
-						} catch (IOException e) { e.printStackTrace(); }		
-								
+							Album album = justify.browseAlbum(uri.getId());
+							if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
+							System.out.println(album);
+							System.out.println("Contiene " + album.getTracks().size() + " pistas repartidas en " + album.getDiscs().size() + " disco(s)");
+							String directorio = replaceByReference(album, ALBUM_FORMAT);
+							if(args.length == 4) { 
+								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio);
+							} else if(args.length == 5) {
+								for(Track track : album.getTracks()){
+									if (track.getTrackNumber() >= Integer.parseInt(args[4]))
+										justify.downloadTrack(track, directorio);								
+								}
+							}
+							
+							try {
+								Image coverimage = justify.image(album.getCover());
+								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "cover.jpg");
+								ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
+							} catch (IOException e) { e.printStackTrace(); }		
 					}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
-				} else if(args[2].equals("cover")){
+				} else if(args[3].equals("cover")){
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
