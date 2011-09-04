@@ -100,6 +100,8 @@ public class File implements Comparable<File> {
 	 * @return An integer.
 	 */
 	public int getBitrate(){
+		if (this.format.length() == 0)
+			return 0;
 		return Integer.parseInt(this.format.split(",")[1]);
 	}
 	
