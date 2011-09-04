@@ -40,6 +40,12 @@ public class Media {
 	 * External ids of this media.
 	 */
 	private Map<String, String> externalIds;
+
+	/**
+	 * Alternative tracks.
+	 */
+
+	private List<Track> alternatives;	
 	
 	/**
 	 * Creates an empty {@link Media} object.
@@ -50,6 +56,7 @@ public class Media {
 		this.popularity   = Float.NaN;
 		this.restrictions = new ArrayList<Restriction>();
 		this.externalIds  = new HashMap<String, String>();
+		this.alternatives = new ArrayList<Track>();
 	}
 	
 	/**
@@ -224,4 +231,25 @@ public class Media {
 	public void setExternalIds(Map<String, String> externalIds){
 		this.externalIds = externalIds;
 	}
+
+	/**
+      * Get the media alternativess.
+	  *
+	  * @return A {@link List} of {@link Track} objects.
+      */
+
+	public List<Track> getAlternatives(){
+	    return this.alternatives;
+	}
+
+	/**
+      * Set the media alternatives.
+      *
+      * @param alternatives A {@link List} of {@link Track} objects.
+      */
+
+    public void setAlternatives(List<Track> alternatives){
+	    this.alternatives = alternatives;
+	} 
+	
 }
