@@ -123,7 +123,7 @@ public class Justify extends JotifyConnection{
 							
 							try {
 								Image coverimage = justify.image(album.getCover());
-								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "cover.jpg");
+								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.jpg");
 								ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
 								System.out.println("Descargada portada del album: " + album);
 							} catch (IOException e) { e.printStackTrace(); }		
@@ -137,7 +137,7 @@ public class Justify extends JotifyConnection{
 						
 						try {
 							Image coverimage = justify.image(album.getCover());
-							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "cover.jpg");
+							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.jpg");
 							ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
 							System.out.println("Descargada portada del album");
 						} catch (IOException e) { e.printStackTrace(); }			
