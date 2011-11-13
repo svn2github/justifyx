@@ -163,13 +163,13 @@ public class Justify extends JotifyConnection{
 			try {
 				VorbisCommentHeader comments = new VorbisCommentHeader();
 				comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
-				comments.fields.add(new CommentField("ALBUM_ARTIST", track.getAlbum().getArtist().getName()));
+				comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
 				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
 				comments.fields.add(new CommentField("TITLE", track.getTitle()));
-				comments.fields.add(new CommentField("YEAR", String.valueOf(track.getAlbum().getYear())));
-				comments.fields.add(new CommentField("TRACK", String.valueOf(track.getTrackNumber())));
-				comments.fields.add(new CommentField("DISC_NO", discindex.toString()));
-				comments.fields.add(new CommentField("DISC_TOTAL", String.valueOf(track.getAlbum().getDiscs().size())));
+				comments.fields.add(new CommentField("DATE", String.valueOf(track.getAlbum().getYear())));
+				comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
+				comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
+				comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
 				VorbisIO.writeComments(file, comments);
 			} catch (IOException e) { e.printStackTrace(); }
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
