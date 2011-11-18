@@ -369,6 +369,10 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 					album.setCover(cover);
 				}
 			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-art")){
+				this.getElementString();
+			}
 			else if(name.equals("popularity")){
 				album.setPopularity(this.getElementFloat());
 			}
@@ -617,6 +621,10 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 			}
 			else if(name.equals("cover")){
 				track.setCover(this.getElementString());
+			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-art")){
+				this.getElementString();
 			}
 			else if(name.equals("popularity")){
 				track.setPopularity(this.getElementFloat());
