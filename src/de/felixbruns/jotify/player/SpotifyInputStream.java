@@ -86,7 +86,7 @@ public class SpotifyInputStream extends InputStream implements ChannelListener {
 	private Lock      requestLock;
 	private Condition requestCondition;
 	
-	public SpotifyInputStream(Protocol protocol, Track track, int bitrate) throws TimeoutException {
+	public SpotifyInputStream(Protocol protocol, Track track, String bitrate) throws TimeoutException {
 		/* Set Protocol, Track and get File with right bitrate. */
 		this.protocol = protocol;
 		this.track    = track;

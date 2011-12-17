@@ -1,7 +1,6 @@
 package de.felixbruns.jotify.media;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -62,7 +61,7 @@ public class Track extends Media {
 	 * If this track is explicit.
 	 */
 	private boolean explicit;
-	
+
 	/**
 	 * Creates an empty {@link Track} object.
 	 */
@@ -277,26 +276,19 @@ public class Track extends Media {
 	 * 
 	 * @return A {@link File} object or null if no files are available.
 	 */
-	public File getFile(int bitrate){
+	public File getFile(String bitrate){
 		File result = null;
-		int  min    = -1;
-		int  diff;
+		String codecaudio = null;
+		if (bitrate.equals("ogg_96")) codecaudio = "Ogg Vorbis,96000";
+		if (bitrate.equals("ogg_160")) codecaudio = "Ogg Vorbis,160000";
+		if (bitrate.equals("ogg_320")) codecaudio = "Ogg Vorbis,320000";
+		if (bitrate.equals("mp3_320")) codecaudio = "MPEG 1 layer 3,320000";
 		
-		/* Make sure files are sorted (highest bitrate last). */
-		Collections.sort(this.files);
-		
-		/* Pick the best-match. */
-		for(File file : this.files){
-			if(file.getFormat().contains("Ogg Vorbis") == true) {
-				diff = Math.abs(file.getBitrate() - bitrate);
-				
-				if(min == -1 || diff <= min){
-					min    = diff;
+		for(File file : this.files)
+			if(file.getFormat().contains(codecaudio) == true)
 					result = file;
-				}
-			}
-		}
-		
+		if (result == null) result = this.files.get(1);
+
 		return result;
 	}
 	

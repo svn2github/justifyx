@@ -34,7 +34,6 @@ import de.felixbruns.jotify.JotifyConnection;
 import de.felixbruns.jotify.exceptions.AuthenticationException;
 import de.felixbruns.jotify.exceptions.ConnectionException;
 import de.felixbruns.jotify.media.Album;
-import de.felixbruns.jotify.media.File;
 import de.felixbruns.jotify.media.Link;
 import de.felixbruns.jotify.media.Playlist;
 import de.felixbruns.jotify.media.Track;
@@ -48,17 +47,27 @@ import adamb.vorbis.*;
 public class Justify extends JotifyConnection{
 	
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
-	private static String TRACK_FORMAT = ":artist.name: - :title:.ogg";
+	private static String TRACK_FORMAT = ":artist.name: - :title:.";
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
 	private static String PLAYLIST_FORMAT = ":author: - :name:";
 	private static long TIMEOUT = 10; // en segundos
 	private static Integer discindex = 1;
 	private static Integer oldtracknumber = 1;
+	private static String user;
+	private static String password;
+	static String formataudio;
+	static String commandarg;
+	static String numbersong;
 	
 	public static void main(String args[]){
 		
-		if (args.length < 4 || args.length >5 ){
-			System.err.println("[ERROR] Se esperan los siguientes parametros: nombre de usuario, password, direccion Spotify para descargar y comandos.");
+		if (args.length < 5 || args.length > 6 ){
+			System.err.println("[ERROR] Se esperan los siguientes parametros: nombre de usuario, password, direccion Spotify para descargar, formato y comandos.");
+			System.err.println("Formato:");
+			System.err.println("    ogg_96:  Ogg Vorbis a 96kbps");
+			System.err.println("    ogg_160: Ogg Vorbis a 160kbps");
+			System.err.println("    ogg_320: Ogg Vorbis a 320kbps");
+			System.err.println("    mp3_320: MP3 a 320kbps");
 			System.err.println("Comandos:");
 			System.err.println("    download: descargar pista/lista/album");
 			System.err.println("    download numero: descarga album comenzando por el numero de pista indicado");
@@ -66,9 +75,15 @@ public class Justify extends JotifyConnection{
 			return;
 		}
 		
+		user = args[0];
+		password = args[1];
+		formataudio = args[3];
+		commandarg = args[4];
+		if (args.length == 6) numbersong = args[5];
+		
 		Justify justify = new Justify();
 		try{
-			try{ justify.login(args[0], args[1]);
+			try{ justify.login(user, password);
 			}catch(ConnectionException ce){ throw new JustifyException("[ERROR] No se ha podido conectar con el servidor");
 			}catch(AuthenticationException ae){ throw new JustifyException("[ERROR] Usuario o password no validos"); }
 
@@ -78,12 +93,12 @@ public class Justify extends JotifyConnection{
 			try{
 				Link uri = Link.create(args[2]);
 
-				if(args[3].equals("download")) {
+				if(commandarg.equals("download")) {
 					if (uri.isTrackLink()){
 						
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Pista no encontrada");
-						justify.downloadTrack(track, null);
+						justify.downloadTrack(track, null, formataudio);
 						
 					}else if (uri.isPlaylistLink()){
 						
@@ -92,7 +107,7 @@ public class Justify extends JotifyConnection{
 						System.out.println(playlist);
 						System.out.println("Numero de pistas: " + playlist.getTracks().size());
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
-						for(Track track : playlist.getTracks()) justify.downloadTrack(justify.browse(track), directorio);
+						for(Track track : playlist.getTracks()) justify.downloadTrack(justify.browse(track), directorio, formataudio);
 						
 					}else if(uri.isAlbumLink()){
 							Album album = justify.browseAlbum(uri.getId());
@@ -100,12 +115,12 @@ public class Justify extends JotifyConnection{
 							System.out.println(album);
 							System.out.println("Contiene " + album.getTracks().size() + " pistas repartidas en " + album.getDiscs().size() + " disco(s)");
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
-							if(args.length == 4) { 
-								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio);
-							} else if(args.length == 5) {
+							if(args.length == 5) { 
+								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio, formataudio);
+							} else if(args.length == 6) {
 								for(Track track : album.getTracks()){
-									if (track.getTrackNumber() >= Integer.parseInt(args[4]))
-										justify.downloadTrack(track, directorio);								
+									if (track.getTrackNumber() >= Integer.parseInt(numbersong))
+										justify.downloadTrack(track, directorio, formataudio);								
 								}
 							}
 							
@@ -116,7 +131,7 @@ public class Justify extends JotifyConnection{
 								System.out.println("Descargada portada del album: " + album);
 							} catch (IOException e) { e.printStackTrace(); }		
 					}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
-				} else if(args[3].equals("cover")){
+				} else if(commandarg.equals("cover")){
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
@@ -140,10 +155,10 @@ public class Justify extends JotifyConnection{
 			}catch (ConnectionException ce){ System.err.println("[ERROR] No se ha podido desconectar"); } 
 		}
 	}
-
+ 
 	public Justify(){ super(TIMEOUT, TimeUnit.SECONDS); }
 
-	private void downloadTrack(Track track, String parent) throws JustifyException, TimeoutException{
+	private void downloadTrack(Track track, String parent, String bitrate) throws JustifyException, TimeoutException{
 		System.out.println(track);
 		
 		if(track.getAlbum().getDiscs().size() > 1) {
@@ -155,36 +170,44 @@ public class Justify extends JotifyConnection{
 		
 		try{
 			String nombre = replaceByReference(track, TRACK_FORMAT);
+			nombre = nombre + (bitrate.contains("ogg") == true ? "ogg" : "mp3");
 			java.io.File file = new java.io.File(sanearNombre(parent), (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(nombre));
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
-				download(track, file, File.BITRATE_320); // bitrate maximo disponible
+				download(track, file, bitrate);
 
-			try {
-				VorbisCommentHeader comments = new VorbisCommentHeader();
-				comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
-				comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
-				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
-				comments.fields.add(new CommentField("TITLE", track.getTitle()));
-				comments.fields.add(new CommentField("DATE", String.valueOf(track.getAlbum().getYear())));
-				comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
-				comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
-				comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
-				VorbisIO.writeComments(file, comments);
-			} catch (IOException e) { e.printStackTrace(); }
+			if (bitrate.contains("ogg")) {
+				try {
+					VorbisCommentHeader comments = new VorbisCommentHeader();
+					comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
+					comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
+					comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
+					comments.fields.add(new CommentField("TITLE", track.getTitle()));
+					comments.fields.add(new CommentField("DATE", String.valueOf(track.getAlbum().getYear())));
+					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
+					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
+					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
+					VorbisIO.writeComments(file, comments);
+				} catch (IOException e) { e.printStackTrace(); }
+			} else if (bitrate.contains("mp3")) {
+				// tag mp3 file
+			}
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
 		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */ }
 		
 	}
 	
-	private void download(Track track, java.io.File file, int bitrate) throws TimeoutException, IOException{
+	private void download(Track track, java.io.File file, String bitrate) throws TimeoutException, IOException{
 
 		if (track.getFiles().size() == 0) return;
 		FileOutputStream fos = new FileOutputStream(file);
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate);
 
 		byte[] buf = new byte[8192];
-		sis.read(buf, 0, 167); // Skip Spotify OGG Header, no se puede usar skip() porque aun no hay datos leidos por ningun read()
+		if(bitrate.contains("ogg"))
+			sis.read(buf, 0, 167); // Skip Spotify OGG Header, no se puede usar skip() porque aun no hay datos leidos por ningun read()
+		else
+			sis.read(buf, 0, 0);
 		while (true) {
 			int length = sis.read(buf);
 			if (length < 0) break;
