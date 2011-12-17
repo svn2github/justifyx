@@ -287,11 +287,13 @@ public class Track extends Media {
 		
 		/* Pick the best-match. */
 		for(File file : this.files){
-			diff = Math.abs(file.getBitrate() - bitrate);
-			
-			if(min == -1 || diff <= min){
-				min    = diff;
-				result = file;
+			if(file.getFormat().contains("Ogg Vorbis") == true) {
+				diff = Math.abs(file.getBitrate() - bitrate);
+				
+				if(min == -1 || diff <= min){
+					min    = diff;
+					result = file;
+				}
 			}
 		}
 		
