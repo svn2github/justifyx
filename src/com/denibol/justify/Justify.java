@@ -23,8 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,11 +41,17 @@ import de.felixbruns.jotify.media.User;
 import de.felixbruns.jotify.media.Link.InvalidSpotifyURIException;
 import de.felixbruns.jotify.player.SpotifyInputStream;
 
-import adamb.vorbis.*;
+import adamb.vorbis.CommentField;
+import adamb.vorbis.VorbisCommentHeader;
+import adamb.vorbis.VorbisIO;
 
+import org.farng.mp3.MP3File;
+import org.farng.mp3.TagConstant;
+import org.farng.mp3.TagException;
+import org.farng.mp3.TagOptionSingleton;
+import org.farng.mp3.id3.*;
 
 public class Justify extends JotifyConnection{
-	
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
 	private static String TRACK_FORMAT = ":artist.name: - :title:.";
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
@@ -183,20 +189,33 @@ public class Justify extends JotifyConnection{
 					comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
 					comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
 					comments.fields.add(new CommentField("TITLE", track.getTitle()));
-					comments.fields.add(new CommentField("DATE", String.valueOf(track.getAlbum().getYear())));
+					comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
 					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
 					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
 					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
 					VorbisIO.writeComments(file, comments);
 				} catch (IOException e) { e.printStackTrace(); }
 			} else if (bitrate.contains("mp3")) {
-				// tag mp3 file
+		        MP3File mp3file = new MP3File();
+		        mp3file.setMp3file(file);
+		        TagOptionSingleton.getInstance().setDefaultSaveMode(TagConstant.MP3_FILE_SAVE_OVERWRITE);
+		        ID3v2_3 tag = new ID3v2_3(mp3file.getID3v2Tag());
+		        tag.setSongTitle(track.getTitle());
+		        tag.setLeadArtist(track.getArtist().getName());
+		        tag.setAlbumTitle(track.getAlbum().getName());
+		        tag.setYearReleased(String.valueOf(track.getYear()));
+		        tag.setTrackNumberOnAlbum(String.valueOf(track.getTrackNumber()));
+		        mp3file.setID3v2Tag(tag);
+		        mp3file.save();
+				java.io.File filetmp = new java.io.File(sanearNombre(parent), (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(replaceByReference(track, TRACK_FORMAT) + "original.mp3"));
+		        filetmp.delete();
 			}
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
-		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */ }
-		
+		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */
+		}catch(TagException e) { e.printStackTrace();
+		}
 	}
-	
+
 	private void download(Track track, java.io.File file, String bitrate) throws TimeoutException, IOException{
 
 		if (track.getFiles().size() == 0) return;
