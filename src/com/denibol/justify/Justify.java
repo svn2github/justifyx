@@ -132,8 +132,8 @@ public class Justify extends JotifyConnection{
 							
 							try {
 								Image coverimage = justify.image(album.getCover());
-								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.jpg");
-								ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
+								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.png");
+								ImageIO.write((BufferedImage) coverimage, "png", coverfile);
 								System.out.println("Descargada portada del album: " + album);
 							} catch (IOException e) { e.printStackTrace(); }		
 					}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
@@ -146,8 +146,8 @@ public class Justify extends JotifyConnection{
 						
 						try {
 							Image coverimage = justify.image(album.getCover());
-							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.jpg");
-							ImageIO.write((BufferedImage) coverimage, "jpg", coverfile);
+							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.png");
+							ImageIO.write((BufferedImage) coverimage, "png", coverfile);
 							System.out.println("Descargada portada del album");
 						} catch (IOException e) { e.printStackTrace(); }			
 					}
