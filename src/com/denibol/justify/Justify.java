@@ -175,9 +175,8 @@ public class Justify extends JotifyConnection{
 		}
 		
 		try{
-			String nombre = replaceByReference(track, TRACK_FORMAT);
-			nombre = nombre + (bitrate.contains("ogg") == true ? "ogg" : "mp3");
-			java.io.File file = new java.io.File(sanearNombre(parent), (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(nombre));
+			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getArtist().getName() + " - " + track.getTitle() + (bitrate.contains("ogg") == true ? ".ogg" : ".mp3");
+			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 				download(track, file, bitrate);
@@ -207,7 +206,7 @@ public class Justify extends JotifyConnection{
 		        tag.setTrackNumberOnAlbum(String.valueOf(track.getTrackNumber()));
 		        mp3file.setID3v2Tag(tag);
 		        mp3file.save();
-				java.io.File filetmp = new java.io.File(sanearNombre(parent), (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + sanearNombre(replaceByReference(track, TRACK_FORMAT) + "original.mp3"));
+		        java.io.File filetmp = new java.io.File(sanearNombre(parent), sanearNombre((track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getArtist().getName() + " - " + track.getTitle() + "original.mp3"));
 		        filetmp.delete();
 			}
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
