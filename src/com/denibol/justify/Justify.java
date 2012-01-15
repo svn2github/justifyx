@@ -23,12 +23,17 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageOutputStream;
 
 import de.felixbruns.jotify.JotifyConnection;
 import de.felixbruns.jotify.exceptions.AuthenticationException;
@@ -65,7 +70,7 @@ public class Justify extends JotifyConnection{
 	static String commandarg;
 	static String numbersong;
 	
-	public static void main(String args[]){
+	public static void main(String args[]) throws IOException{
 		
 		if (args.length < 5 || args.length > 6 ){
 			System.err.println("[ERROR] Se esperan los siguientes parametros: nombre de usuario, password, direccion Spotify para descargar, formato y comandos.");
@@ -129,27 +134,15 @@ public class Justify extends JotifyConnection{
 										justify.downloadTrack(track, directorio, formataudio);								
 								}
 							}
-							
-							try {
-								Image coverimage = justify.image(album.getCover());
-								java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.png");
-								ImageIO.write((BufferedImage) coverimage, "png", coverfile);
-								System.out.println("Descargada portada del album: " + album);
-							} catch (IOException e) { e.printStackTrace(); }		
-					}else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
+							justify.downloadCover(justify.image(album.getCover()), directorio);			
+					} else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
 				} else if(commandarg.equals("cover")){
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
 						System.out.println(album);
 						String directorio = replaceByReference(album, ALBUM_FORMAT);
-						
-						try {
-							Image coverimage = justify.image(album.getCover());
-							java.io.File coverfile = new java.io.File(sanearNombre(directorio), "folder.png");
-							ImageIO.write((BufferedImage) coverimage, "png", coverfile);
-							System.out.println("Descargada portada del album");
-						} catch (IOException e) { e.printStackTrace(); }			
+						justify.downloadCover(justify.image(album.getCover()), directorio);			
 					}
 				}
 			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Direccion de Spotify no valida"); }
@@ -163,6 +156,21 @@ public class Justify extends JotifyConnection{
 	}
  
 	public Justify(){ super(TIMEOUT, TimeUnit.SECONDS); }
+	
+	private void downloadCover(Image image, String parent) throws TimeoutException, IOException {
+		Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
+		ImageWriter writer = (ImageWriter)iter.next();
+		ImageWriteParam iwp = writer.getDefaultWriteParam();
+		iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+		iwp.setCompressionQuality(1);
+		java.io.File coverfile = new java.io.File(sanearNombre(parent), "folder.jpg");
+		FileImageOutputStream output = new FileImageOutputStream(coverfile);
+		writer.setOutput(output);
+		IIOImage iimage = new IIOImage((BufferedImage) image, null, null);
+		writer.write(null, iimage, iwp);
+		writer.dispose();
+		System.out.println("Descargada portada del album");
+	}
 
 	private void downloadTrack(Track track, String parent, String bitrate) throws JustifyException, TimeoutException{
 		System.out.println(track);
@@ -216,7 +224,6 @@ public class Justify extends JotifyConnection{
 	}
 
 	private void download(Track track, java.io.File file, String bitrate) throws TimeoutException, IOException{
-
 		if (track.getFiles().size() == 0) return;
 		FileOutputStream fos = new FileOutputStream(file);
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate);
