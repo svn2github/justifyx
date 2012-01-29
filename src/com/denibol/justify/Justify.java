@@ -69,6 +69,7 @@ public class Justify extends JotifyConnection{
 	static String formataudio;
 	static String commandarg;
 	static String numbersong;
+	static String country;
 	
 	public static void main(String args[]) throws IOException{
 		
@@ -99,6 +100,7 @@ public class Justify extends JotifyConnection{
 			}catch(AuthenticationException ae){ throw new JustifyException("[ERROR] Usuario o password no validos"); }
 
 			User usuario = justify.user();
+			country = usuario.getCountry();
 			System.out.println(usuario);
 			if (!usuario.isPremium()) throw new JustifyException("[ERROR] Debes ser usuario 'premium'");
 			try{
@@ -187,7 +189,12 @@ public class Justify extends JotifyConnection{
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
+			if (track.getRestrictions().toString().contains(country))
 				download(track, file, bitrate);
+			else {
+				System.out.println("!! Track no disponible en la región " +  country + ". Regiones disponibles: " + track.getRestrictions().toString());
+				return;
+			}
 
 			if (bitrate.contains("ogg")) {
 				try {
