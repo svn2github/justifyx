@@ -361,21 +361,21 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 			else if(name.equals("album-type")){
 				album.setType(this.getElementString());
 			}
+			/* TODO: currently skipped. */
 			else if(name.equals("cover")){
+				this.getElementString();
+			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-small")){
+				this.getElementString();
+			}
+			else if(name.equals("cover-large")){
 				String cover = this.getElementString();
 				
 				/* Check if string is empty to prevent exception in setCover(). */
 				if(!cover.isEmpty()){
 					album.setCover(cover);
 				}
-			}
-			/* TODO: currently skipped. */
-			else if(name.equals("cover-small")){
-				this.getElementString();
-			}
-			/* TODO: currently skipped. */
-			else if(name.equals("cover-large")){
-				this.getElementString();
 			}			
 			/* TODO: currently skipped. */
 			else if(name.equals("cover-art")){
@@ -627,16 +627,16 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 			else if(name.equals("album-links")){
 				skipLinks();
 			}
+			/* TODO: currently skipped. */
 			else if(name.equals("cover")){
-				track.setCover(this.getElementString());
+				this.getElementString();
 			}
 			/* TODO: currently skipped. */
 			else if(name.equals("cover-small")){
 				this.getElementString();
 			}
-			/* TODO: currently skipped. */
 			else if(name.equals("cover-large")){
-				this.getElementString();
+				track.setCover(this.getElementString());
 			}
 			/* TODO: currently skipped. */
 			else if(name.equals("cover-art")){
