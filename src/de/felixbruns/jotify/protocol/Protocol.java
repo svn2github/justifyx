@@ -79,7 +79,7 @@ public class Protocol {
 			throw new ConnectionException("Error connecting to any server!");
 		}
 		
-		System.out.format("Connected to '%s'\n", this.server);
+		// System.out.format("Connected to '%s'\n", this.server);
 	}
 	
 	/* Disconnect from server */
@@ -88,7 +88,7 @@ public class Protocol {
 			/* Close connection to server. */
 			this.channel.close();
 			
-			System.out.format("Disconnected from '%s'\n", this.server);
+			// System.out.format("Disconnected from '%s'\n", this.server);
 		}
 		catch(IOException e){
 			throw new ConnectionException("Error disconnecting from '" + this.server + "'!", e);
