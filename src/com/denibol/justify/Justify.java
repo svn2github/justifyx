@@ -189,11 +189,13 @@ public class Justify extends JotifyConnection{
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			System.out.println("Descargando al fichero " + file.getPath());
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
-			if (track.getRestrictions().toString().contains(country))
-				download(track, file, bitrate);
-			else {
-				System.out.println("!! Track no disponible en la región " +  country + ". Regiones disponibles: " + track.getRestrictions().toString());
+
+			if (track.getRestrictions().get(0).getForbidden().contains(country)) {
+				System.out.println("!!! Track no disponible en la región " +  country + ". Regiones prohibidas: " + track.getRestrictions().get(0).getForbidden());
 				return;
+			}
+			else {
+				download(track, file, bitrate);
 			}
 
 			if (bitrate.contains("ogg")) {
