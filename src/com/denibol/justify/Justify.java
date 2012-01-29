@@ -144,7 +144,8 @@ public class Justify extends JotifyConnection{
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
-						System.out.println(album);
+						System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName());
+						System.out.println();
 						String directorio = replaceByReference(album, ALBUM_FORMAT);
 						justify.downloadCover(justify.image(album.getCover()), directorio);			
 					}
