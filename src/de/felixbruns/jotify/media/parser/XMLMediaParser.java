@@ -370,6 +370,14 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 				}
 			}
 			/* TODO: currently skipped. */
+			else if(name.equals("cover-small")){
+				this.getElementString();
+			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-large")){
+				this.getElementString();
+			}			
+			/* TODO: currently skipped. */
 			else if(name.equals("cover-art")){
 				this.getElementString();
 			}
@@ -621,6 +629,14 @@ public class XMLMediaParser extends XMLParser implements XMLStreamConstants {
 			}
 			else if(name.equals("cover")){
 				track.setCover(this.getElementString());
+			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-small")){
+				this.getElementString();
+			}
+			/* TODO: currently skipped. */
+			else if(name.equals("cover-large")){
+				this.getElementString();
 			}
 			/* TODO: currently skipped. */
 			else if(name.equals("cover-art")){
