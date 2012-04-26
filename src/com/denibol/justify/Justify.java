@@ -59,7 +59,6 @@ import org.farng.mp3.id3.*;
 
 public class Justify extends JotifyConnection{
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
-	private static String TRACK_FORMAT = ":artist.name: - :title:.";
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
 	private static String PLAYLIST_FORMAT = ":author: - :name:";
 	private static long TIMEOUT = 10; // en segundos
@@ -97,14 +96,14 @@ public class Justify extends JotifyConnection{
 		Justify justify = new Justify();
 		try{
 			try{ justify.login(user, password);
-			}catch(ConnectionException ce){ throw new JustifyException("[ERROR] No se ha podido conectar con el servidor");
-			}catch(AuthenticationException ae){ throw new JustifyException("[ERROR] Usuario o password no validos"); }
+			}catch(ConnectionException ce){ throw new JustifyException("[ERROR] Error connecting the server");
+			}catch(AuthenticationException ae){ throw new JustifyException("[ERROR] User or password is not valid"); }
 
 			User usuario = justify.user();
 			country = usuario.getCountry();
 			System.out.println(usuario);
 			System.out.println();
-			if (!usuario.isPremium()) throw new JustifyException("[ERROR] Debes ser usuario 'premium'");
+			if (!usuario.isPremium()) throw new JustifyException("[ERROR] You must be a 'premium' user");
 			try{
 				Link uri = Link.create(args[2]);
 
@@ -112,21 +111,21 @@ public class Justify extends JotifyConnection{
 					if (uri.isTrackLink()){
 						
 						Track track = justify.browseTrack(uri.getId());
-						if (track == null) throw new JustifyException("[ERROR] Pista no encontrada");
+						if (track == null) throw new JustifyException("[ERROR] Track not found");
 						justify.downloadTrack(track, null, formataudio);
 						
 					}else if (uri.isPlaylistLink()){
 						
 						Playlist playlist = justify.playlist(uri.getId());
-						if (playlist == null) throw new JustifyException("[ERROR] Lista de reproduccion no encontrada");
+						if (playlist == null) throw new JustifyException("[ERROR] Playlist not found");
 						System.out.println(playlist);
-						System.out.println("Numero de pistas: " + playlist.getTracks().size());
+						System.out.println("Number of tracks: " + playlist.getTracks().size());
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
 						for(Track track : playlist.getTracks()) justify.downloadTrack(justify.browse(track), directorio, formataudio);
 						
 					}else if(uri.isAlbumLink()){
 							Album album = justify.browseAlbum(uri.getId());
-							if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
+							if (album == null) throw new JustifyException("[ERROR] Album not found");
 							System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName() + " | Tracks: " + album.getTracks().size() +" | Discs: " + album.getDiscs().size());
 							System.out.println();
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
@@ -149,24 +148,24 @@ public class Justify extends JotifyConnection{
 									}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
-					} else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
+					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
 				} else if(commandarg.equals("cover")){
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
-						if (album == null) throw new JustifyException("[ERROR] Album no encontrado");
+						if (album == null) throw new JustifyException("[ERROR] Album not found");
 						System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName());
 						System.out.println();
 						String directorio = replaceByReference(album, ALBUM_FORMAT);
 						justify.downloadCover(justify.image(album.getCover()), directorio);			
 					}
 				}
-			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Direccion de Spotify no valida"); }
+			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Spotify URI is not valid"); }
 				
 		}catch (JustifyException je){ System.err.println(je.getMessage()); je.printStackTrace();
 		}catch (TimeoutException te){ System.err.println(te.getMessage()); te.printStackTrace();
 		}finally{
 			try{ justify.close();
-			}catch (ConnectionException ce){ System.err.println("[ERROR] No se ha podido desconectar"); } 
+			}catch (ConnectionException ce){ System.err.println("[ERROR] Problem disconnecting"); } 
 		}
 	}
  
