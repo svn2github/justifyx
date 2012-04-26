@@ -72,7 +72,7 @@ public class Justify extends JotifyConnection{
 	static String numbersong;
 	static String country;
 	
-	public static void main(String args[]) throws IOException{
+	public static void main(String args[]) throws IOException, InterruptedException{
 		
 		if (args.length < 5 || args.length > 6 ){
 			System.err.println("[ERROR] Parameters: Spotify_user Spotify_password Spotify_URI Format Command");
@@ -134,9 +134,19 @@ public class Justify extends JotifyConnection{
 								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio, formataudio);
 							} else if(args.length == 6) {
 								for(Track track : album.getTracks()){
+									boolean downloaded = false;
+									int failedAttempts = 0;
+									try {
+										justify.downloadTrack(track, directorio, formataudio);
+										downloaded = true;
+									} catch (TimeoutException te){
+										System.out.println(" <- Timeout! Trying again in 5 seconds...");
+										failedAttempts++; // TODO: Can treat failed attempts here, exiting if more than 3 failed attempts on a single file, for example.
+										Thread.sleep(5000);
+									}
 									if (track.getTrackNumber() >= Integer.parseInt(numbersong))
-										justify.downloadTrack(track, directorio, formataudio);								
-								}
+										justify.downloadTrack(track, directorio, formataudio);
+									}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
 					} else throw new JustifyException("[ERROR] Se esperaba una pista, album o lista de reproduccion");
