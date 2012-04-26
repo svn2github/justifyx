@@ -112,17 +112,25 @@ public class Justify extends JotifyConnection{
 						
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
-						justify.downloadTrack(track, null, formataudio);
+						justify.downloadTrack(track, null, formataudio, false);
 						
 					}else if (uri.isPlaylistLink()){
 						
 						Playlist playlist = justify.playlist(uri.getId());
 						if (playlist == null) throw new JustifyException("[ERROR] Playlist not found");
-						System.out.println(playlist);
-						System.out.println("Number of tracks: " + playlist.getTracks().size());
+						System.out.println("Playlist: " + playlist.getName() + " | Author: " + playlist.getAuthor() + " | Tracks: " + playlist.getTracks().size());
+						System.out.println();
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
-						for(Track track : playlist.getTracks()) justify.downloadTrack(justify.browse(track), directorio, formataudio);
-						
+						DecimalFormat f = new DecimalFormat( "###.#" );
+						Integer indexplaylist = 1;
+						for(Track track : playlist.getTracks()) {
+							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");							
+							justify.downloadTrack(justify.browse(track), directorio, formataudio, true);
+							indexplaylist++;
+						}
+						indexplaylist = 0;
+						System.out.println("[100%] Playlist downloaded");
+							
 					}else if(uri.isAlbumLink()){
 							Album album = justify.browseAlbum(uri.getId());
 							if (album == null) throw new JustifyException("[ERROR] Album not found");
@@ -130,13 +138,13 @@ public class Justify extends JotifyConnection{
 							System.out.println();
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
 							if(args.length == 5) { 
-								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio, formataudio);
+								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio, formataudio, false);
 							} else if(args.length == 6) {
 								for(Track track : album.getTracks()){
 									boolean downloaded = false;
 									int failedAttempts = 0;
 									try {
-										justify.downloadTrack(track, directorio, formataudio);
+										justify.downloadTrack(track, directorio, formataudio, false);
 										downloaded = true;
 									} catch (TimeoutException te){
 										System.out.println(" <- Timeout! Trying again in 5 seconds...");
@@ -144,7 +152,7 @@ public class Justify extends JotifyConnection{
 										Thread.sleep(5000);
 									}
 									if (track.getTrackNumber() >= Integer.parseInt(numbersong))
-										justify.downloadTrack(track, directorio, formataudio);
+										justify.downloadTrack(track, directorio, formataudio, false);
 									}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
@@ -187,7 +195,7 @@ public class Justify extends JotifyConnection{
 		System.out.println();
 	}
 
-	private void downloadTrack(Track track, String parent, String bitrate) throws JustifyException, TimeoutException{	
+	private void downloadTrack(Track track, String parent, String bitrate, boolean isplaylist) throws JustifyException, TimeoutException{	
 		if(track.getAlbum().getDiscs().size() > 1) {
 			if(track.getTrackNumber() < oldtracknumber) {
 				discindex++;
@@ -199,7 +207,12 @@ public class Justify extends JotifyConnection{
 			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + (bitrate.contains("ogg") == true ? ".ogg" : ".mp3");
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			DecimalFormat f = new DecimalFormat( "###.#" );
-			System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(nombre));
+			
+			if(isplaylist)
+				System.out.print(sanearNombre(nombre));
+			else
+				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(nombre));
+			
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
 			boolean allowed = true;
