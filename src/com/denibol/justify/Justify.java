@@ -259,7 +259,7 @@ public class Justify extends JotifyConnection{
 		        tag.setTrackNumberOnAlbum(String.valueOf(track.getTrackNumber()));
 		        mp3file.setID3v2Tag(tag);
 		        mp3file.save();
-		        java.io.File filetmp = new java.io.File(sanearNombre(parent), sanearNombre((track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getArtist().getName() + " - " + track.getTitle() + "original.mp3"));
+		        java.io.File filetmp = new java.io.File(sanearNombre(parent), sanearNombre((track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".original.mp3"));
 		        filetmp.delete();
 			}
 			
