@@ -210,8 +210,10 @@ public class Justify extends JotifyConnection{
 			
 			if(isplaylist)
 				System.out.print(sanearNombre(nombre));
-			else
+			else if (track.getAlbum().getTracks().size() > 0)
 				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(nombre));
+			else
+				System.out.print(sanearNombre(nombre));
 			
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
