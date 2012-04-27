@@ -61,7 +61,7 @@ public class Justify extends JotifyConnection{
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
 	private static String PLAYLIST_FORMAT = ":author: - :name:";
-	private static long TIMEOUT = 10; // en segundos
+	private static long TIMEOUT = 20; // in seconds
 	private static Integer discindex = 1;
 	private static Integer oldtracknumber = 1;
 	private static String user;
