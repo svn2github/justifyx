@@ -243,7 +243,8 @@ public class Justify extends JotifyConnection{
 					comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
 					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
 					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
-					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
+					if (track.getAlbum().getDiscs().size() > 0)
+						comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
 					VorbisIO.writeComments(file, comments);
 				} catch (IOException e) { e.printStackTrace(); }
 			} else if (bitrate.contains("mp3")) {
