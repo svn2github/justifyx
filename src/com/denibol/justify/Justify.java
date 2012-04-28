@@ -121,7 +121,7 @@ public class Justify extends JotifyConnection{
 						System.out.println("Playlist: " + playlist.getName() + " | Author: " + playlist.getAuthor() + " | Tracks: " + playlist.getTracks().size());
 						System.out.println();
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
-						DecimalFormat f = new DecimalFormat( "###.#" );
+						DecimalFormat f = new DecimalFormat( "00" );
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");							
@@ -137,23 +137,20 @@ public class Justify extends JotifyConnection{
 							System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName() + " | Tracks: " + album.getTracks().size() +" | Discs: " + album.getDiscs().size());
 							System.out.println();
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
-							if(args.length == 5) { 
-								for(Track track : album.getTracks()) justify.downloadTrack(track, directorio, formataudio, false);
-							} else if(args.length == 6) {
-								for(Track track : album.getTracks()){
-									boolean downloaded = false;
-									int failedAttempts = 0;
-									try {
+							for(Track track : album.getTracks()){
+								boolean downloaded = false;
+								int failedAttempts = 0;
+								try {
+									if (args.length == 5 || (args.length == 6 && track.getTrackNumber() >= Integer.parseInt(numbersong))) {
 										justify.downloadTrack(track, directorio, formataudio, false);
 										downloaded = true;
-									} catch (TimeoutException te){
-										System.out.println(" <- Timeout! Trying again in 5 seconds...");
-										failedAttempts++; // TODO: Can treat failed attempts here, exiting if more than 3 failed attempts on a single file, for example.
-										Thread.sleep(5000);
 									}
-									if (track.getTrackNumber() >= Integer.parseInt(numbersong))
-										justify.downloadTrack(track, directorio, formataudio, false);
-									}
+								} catch (TimeoutException te){
+									System.out.println(" <- Timeout! Trying again in 5 seconds...");
+									failedAttempts++; // TODO: Can treat failed attempts here, exiting if more than 3 failed attempts on a single file, for example.
+									Thread.sleep(5000);
+									justify.downloadTrack(track, directorio, formataudio, false);
+								}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
 					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
@@ -206,7 +203,7 @@ public class Justify extends JotifyConnection{
 		try{
 			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + (bitrate.contains("ogg") == true ? ".ogg" : ".mp3");
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
-			DecimalFormat f = new DecimalFormat( "###.#" );
+			DecimalFormat f = new DecimalFormat( "00" );
 			
 			if(isplaylist)
 				System.out.print(sanearNombre(nombre));

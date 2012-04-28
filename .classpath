@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/Peter/workspace/justifyx/jid3lib-0.5.4.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Peter/workspace/justifyx/jvorbiscomment-1.0.3.jar"/>
+	<classpathentry kind="lib" path="/home/klaxnek/workspace/justifyx/jid3lib-0.5.4.jar"/>
+	<classpathentry kind="lib" path="/home/klaxnek/workspace/justifyx/jvorbiscomment-1.0.3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
