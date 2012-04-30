@@ -189,6 +189,7 @@ public class Justify extends JotifyConnection{
 		iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 		iwp.setCompressionQuality(1);
 		java.io.File coverfile = new java.io.File(sanearNombre(parent), "folder.jpg");
+		coverfile.getParentFile().mkdirs();
 		FileImageOutputStream output = new FileImageOutputStream(coverfile);
 		writer.setOutput(output);
 		IIOImage iimage = new IIOImage((BufferedImage) image, null, null);
