@@ -139,17 +139,23 @@ public class Justify extends JotifyConnection{
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
 							for(Track track : album.getTracks()){
 								boolean downloaded = false;
-								int failedAttempts = 0;
-								try {
-									if (args.length == 5 || (args.length == 6 && track.getTrackNumber() >= Integer.parseInt(numbersong))) {
-										justify.downloadTrack(track, directorio, formataudio, false);
-										downloaded = true;
+								Integer retries = 5;
+								Integer counter = 0;
+								while(!downloaded && (counter<retries)) {		
+									counter++;
+									try {
+										if (args.length == 5 || (args.length == 6 && track.getTrackNumber() >= Integer.parseInt(numbersong))) {
+											justify.downloadTrack(track, directorio, formataudio, false);
+											downloaded = true;
+										}
+									} catch (TimeoutException te1){
+										if(counter != retries)
+											System.out.println("  <-  Timeout! Trying again in 5 secs... (x" + counter.toString() + ")");
+										else
+											System.out.println("  <-  Timeout! Skipping track...");
+										
+										Thread.sleep(5000);
 									}
-								} catch (TimeoutException te){
-									System.out.println(" <- Timeout! Trying again in 5 seconds...");
-									failedAttempts++; // TODO: Can treat failed attempts here, exiting if more than 3 failed attempts on a single file, for example.
-									Thread.sleep(5000);
-									justify.downloadTrack(track, directorio, formataudio, false);
 								}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
@@ -189,7 +195,6 @@ public class Justify extends JotifyConnection{
 		writer.write(null, iimage, iwp);
 		writer.dispose();
 		System.out.println("[100%] Album cover  <-  OK!");
-		System.out.println();
 	}
 
 	private void downloadTrack(Track track, String parent, String bitrate, boolean isplaylist) throws JustifyException, TimeoutException{	
