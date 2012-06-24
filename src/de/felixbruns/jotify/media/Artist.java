@@ -113,7 +113,10 @@ public class Artist extends Media {
 	 * @param name The desired name of this artist.
 	 */
 	public void setName(String name){
-		this.name = name;
+		if (this.name != null)
+			this.name = this.name  + ", " + name;
+		else
+			this.name = name;
 	}
 	
 	/**
