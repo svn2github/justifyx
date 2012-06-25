@@ -282,7 +282,6 @@ public class Track extends Media {
 		if (bitrate.equals("ogg_96")) codecaudio = "Ogg Vorbis,96000";
 		if (bitrate.equals("ogg_160")) codecaudio = "Ogg Vorbis,160000";
 		if (bitrate.equals("ogg_320")) codecaudio = "Ogg Vorbis,320000";
-		if (bitrate.equals("mp3_320")) codecaudio = "MPEG 1 layer 3,320000";
 		
 		for(File file : this.files)
 			if(file.getFormat().contains(codecaudio) == true)

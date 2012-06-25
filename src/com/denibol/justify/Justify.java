@@ -51,12 +51,6 @@ import adamb.vorbis.CommentField;
 import adamb.vorbis.VorbisCommentHeader;
 import adamb.vorbis.VorbisIO;
 
-import org.farng.mp3.MP3File;
-import org.farng.mp3.TagConstant;
-import org.farng.mp3.TagException;
-import org.farng.mp3.TagOptionSingleton;
-import org.farng.mp3.id3.*;
-
 public class Justify extends JotifyConnection{
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
@@ -79,7 +73,6 @@ public class Justify extends JotifyConnection{
 			System.err.println("    ogg_96:  Ogg Vorbis @ 96kbps");
 			System.err.println("    ogg_160: Ogg Vorbis @ 160kbps");
 			System.err.println("    ogg_320: Ogg Vorbis @ 320kbps");
-			System.err.println("    mp3_320: MP3 @ 320kbps");
 			System.err.println("Command:");
 			System.err.println("    download: downloads track/list/album");
 			System.err.println("    download number: downloads an album starting on the specified track number");
@@ -207,7 +200,7 @@ public class Justify extends JotifyConnection{
 		}
 		
 		try{
-			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + (bitrate.contains("ogg") == true ? ".ogg" : ".mp3");
+			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			DecimalFormat f = new DecimalFormat( "00" );
 			
@@ -236,40 +229,23 @@ public class Justify extends JotifyConnection{
 				return;
 			}
 
-			if (bitrate.contains("ogg")) {
-				try {
-					VorbisCommentHeader comments = new VorbisCommentHeader();
-					comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
-					comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
-					comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
-					comments.fields.add(new CommentField("TITLE", track.getTitle()));
-					comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
-					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
-					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
-					if (track.getAlbum().getDiscs().size() > 0)
-						comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
-					VorbisIO.writeComments(file, comments);
-				} catch (IOException e) { e.printStackTrace(); }
-			} else if (bitrate.contains("mp3")) {
-		        MP3File mp3file = new MP3File();
-		        mp3file.setMp3file(file);
-		        TagOptionSingleton.getInstance().setDefaultSaveMode(TagConstant.MP3_FILE_SAVE_OVERWRITE);
-		        ID3v2_3 tag = new ID3v2_3(mp3file.getID3v2Tag());
-		        tag.setSongTitle(track.getTitle());
-		        tag.setLeadArtist(track.getArtist().getName());
-		        tag.setAlbumTitle(track.getAlbum().getName());
-		        tag.setYearReleased(String.valueOf(track.getYear()));
-		        tag.setTrackNumberOnAlbum(String.valueOf(track.getTrackNumber()));
-		        mp3file.setID3v2Tag(tag);
-		        mp3file.save();
-		        java.io.File filetmp = new java.io.File(sanearNombre(parent), sanearNombre((track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".original.mp3"));
-		        filetmp.delete();
-			}
+			try {
+				VorbisCommentHeader comments = new VorbisCommentHeader();
+				comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
+				comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
+				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
+				comments.fields.add(new CommentField("TITLE", track.getTitle()));
+				comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
+				comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
+				comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
+				if (track.getAlbum().getDiscs().size() > 0)
+					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
+				VorbisIO.writeComments(file, comments);
+			} catch (IOException e) { e.printStackTrace(); }
 			
 			System.out.println("  <-  OK!");
-		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace(); /* throw new JustifyException("[ERROR] No se ha podido guardar el archivo"); */
-		}catch(IOException ioe){ ioe.printStackTrace(); /* throw new JustifyException("[ERROR] Ha ocurrido un fallo de entrada / salida"); */
-		}catch(TagException e) { e.printStackTrace();
+		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace();
+		}catch(IOException ioe){ ioe.printStackTrace();
 		}
 	}
 
@@ -279,10 +255,8 @@ public class Justify extends JotifyConnection{
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate);
 
 		byte[] buf = new byte[8192];
-		if(bitrate.contains("ogg"))
-			sis.read(buf, 0, 167); // Skip Spotify OGG Header, no se puede usar skip() porque aun no hay datos leidos por ningun read()
-		else
-			sis.read(buf, 0, 0);
+		sis.read(buf, 0, 167); // Skip Spotify OGG Header, no se puede usar skip() porque aun no hay datos leidos por ningun read()
+
 		while (true) {
 			int length = sis.read(buf);
 			if (length < 0) break;
