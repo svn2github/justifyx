@@ -214,20 +214,45 @@ public class Justify extends JotifyConnection{
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
 			boolean allowed = true;
+			Integer nalternative = 0;
+            Integer talternative = 0;
+            
+            if(track.getRestrictions().get(0).getForbidden() != null)
+                    if(track.getRestrictions().get(0).getForbidden().contains(country) == true) {
+                            allowed = false;
+                    }
+                                    
+            if(track.getRestrictions().get(0).getAllowed() != null)
+                    if (track.getRestrictions().get(0).getAllowed().contains(country) == false) {
+                            allowed = false;
+                    }
+            
+            if (allowed == false) {
+                    for(Track pista : track.getAlternatives()) {
+                            nalternative++;
+                            if(pista.getRestrictions().get(0).getForbidden() != null)
+                                    if(pista.getRestrictions().get(0).getForbidden().contains(country) == true) {
+                                            allowed = false;
+                                    }
+                            
+                            if(pista.getRestrictions().get(0).getAllowed() != null) {
+                                    if (pista.getRestrictions().get(0).getAllowed().contains(country) == true) {
+                                            allowed = true;
+                                            talternative = nalternative;
+                                    }
+                            }
+                            
+
+                    }
+            }
 			
-			if(track.getRestrictions().get(0).getForbidden() != null)
-				if(track.getRestrictions().get(0).getForbidden().contains(country) == true)
-					allowed = false;
-			
-			if(track.getRestrictions().get(0).getAllowed() != null)
-				if (track.getRestrictions().get(0).getAllowed().contains(country) == false)
-					allowed = false;
-			
-			if (allowed) download(track, file, bitrate);
-			else {
-				System.out.println("  <-  KO! Region " + country + " not allowed");
-				return;
-			}
+            if (allowed && nalternative == 0) download(track, file, bitrate);
+            else {
+                    if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate); else {
+                    System.out.println("  <-  KO! Region " + country + " not allowed");
+                    return;
+                    }
+            }
 
 			try {
 				VorbisCommentHeader comments = new VorbisCommentHeader();
