@@ -19,6 +19,8 @@ package com.denibol.justify;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -105,7 +107,7 @@ public class Justify extends JotifyConnection{
 						
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
-						justify.downloadTrack(track, null, formataudio, false);
+						justify.downloadTrack(track, null, formataudio, "track");
 						
 					}else if (uri.isPlaylistLink()){
 						
@@ -118,7 +120,7 @@ public class Justify extends JotifyConnection{
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");							
-							justify.downloadTrack(justify.browse(track), directorio, formataudio, true);
+							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist");
 							indexplaylist++;
 						}
 						indexplaylist = 0;
@@ -138,7 +140,7 @@ public class Justify extends JotifyConnection{
 									counter++;
 									try {
 										if (args.length == 5 || (args.length == 6 && track.getTrackNumber() >= Integer.parseInt(numbersong))) {
-											justify.downloadTrack(track, directorio, formataudio, false);
+											justify.downloadTrack(track, directorio, formataudio, "album");
 											downloaded = true;
 										}
 									} catch (TimeoutException te1){
@@ -191,7 +193,7 @@ public class Justify extends JotifyConnection{
 		System.out.println("[100%] Album cover  <-  OK!");
 	}
 
-	private void downloadTrack(Track track, String parent, String bitrate, boolean isplaylist) throws JustifyException, TimeoutException{	
+	private void downloadTrack(Track track, String parent, String bitrate, String option) throws JustifyException, TimeoutException{	
 		if(track.getAlbum().getDiscs().size() > 1) {
 			if(track.getTrackNumber() < oldtracknumber) {
 				discindex++;
@@ -204,11 +206,11 @@ public class Justify extends JotifyConnection{
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			DecimalFormat f = new DecimalFormat( "00" );
 			
-			if(isplaylist)
+			if(option.equals("playlist"))
 				System.out.print(sanearNombre(nombre));
-			else if (track.getAlbum().getTracks().size() > 0)
+			else if (option.equals("album"))
 				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(nombre));
-			else
+			else if (option.equals("track"))
 				System.out.print(sanearNombre(nombre));
 			
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
@@ -245,21 +247,45 @@ public class Justify extends JotifyConnection{
                                             talternative = nalternative;
                                     }
                             }
-                            
-
                     }
             }
 			
             if (allowed && nalternative == 0) download(track, file, bitrate);
             else {
                     if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate); else {
-                    System.out.println("  <-  KO! Region " + country + " not allowed");
-                    return;
+                    	System.out.println("  <-  KO! Region " + country + " not allowed");
+                    	return;
                     }
             }
 
 			try {
 				VorbisCommentHeader comments = new VorbisCommentHeader();
+				
+				// Embeds cover in .ogg for tracks and playlists (not albums)
+				if(option.equals("track") || option.equals("playlist")) {
+					byte[] imagedata = null;
+					try{
+						BufferedImage image = (BufferedImage) this.image(track.getCover());
+						ByteArrayOutputStream output = new ByteArrayOutputStream();
+						ImageIO.write(image, ImageFormats.getFormatForMimeType(ImageFormats.MIME_TYPE_JPG), new DataOutputStream(output));
+						imagedata = output.toByteArray();
+					}catch(Exception e) { e.printStackTrace(); }
+					if (imagedata != null){
+						char[] testdata = Base64Coder.encode(imagedata);
+						String base64image = new String(testdata);
+						//doc: embedded artwork vorbis standards: http://wiki.xiph.org/VorbisComment#Cover_art
+						boolean use_new_method = true;
+						boolean use_old_method = false;
+						if(use_old_method){
+							comments.fields.add(new CommentField("COVERART",base64image));
+							comments.fields.add(new CommentField("COVERARTMIME",ImageFormats.MIME_TYPE_JPG));
+						}
+						if(use_new_method){
+							comments.fields.add(new CommentField("METADATA_BLOCK_PICTURE",base64image));
+						}
+					}				
+				}
+				
 				comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
 				comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
 				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
@@ -267,7 +293,7 @@ public class Justify extends JotifyConnection{
 				comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
 				comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
 				comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
-				if (track.getAlbum().getDiscs().size() > 0)
+				if (option.equals("album"))
 					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
 				VorbisIO.writeComments(file, comments);
 			} catch (IOException e) { e.printStackTrace(); }
