@@ -234,6 +234,10 @@ public class Justify extends JotifyConnection{
                                     if(pista.getRestrictions().get(0).getForbidden().contains(country) == true) {
                                             allowed = false;
                                     }
+                                    else {
+                                    	allowed = true;
+                                    	talternative++;
+                                    }
                             
                             if(pista.getRestrictions().get(0).getAllowed() != null) {
                                     if (pista.getRestrictions().get(0).getAllowed().contains(country) == true) {
@@ -287,6 +291,10 @@ public class Justify extends JotifyConnection{
 			if (length < 0) break;
 			fos.write(buf, 0, length);
 		}
+		
+		sis.close();
+		fos.close();
+		
 	}
 
 	public static boolean isWindows(){
