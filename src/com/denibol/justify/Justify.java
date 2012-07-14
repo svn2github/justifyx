@@ -281,8 +281,8 @@ public class Justify extends JotifyConnection{
 						char[] testdata = Base64Coder.encode(imagedata);
 						String base64image = new String(testdata);
 						//doc: embedded artwork vorbis standards: http://wiki.xiph.org/VorbisComment#Cover_art
-						boolean use_new_method = true;
-						boolean use_old_method = false;
+						boolean use_new_method = false;
+						boolean use_old_method = true;
 						if(use_old_method){
 							comments.fields.add(new CommentField("COVERART",base64image));
 							comments.fields.add(new CommentField("COVERARTMIME",ImageFormats.MIME_TYPE_JPG));
@@ -298,10 +298,17 @@ public class Justify extends JotifyConnection{
 				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
 				comments.fields.add(new CommentField("TITLE", track.getTitle()));
 				comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
-				comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
-				comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
-				if (option.equals("album"))
+				
+				if(option.equals("playlist"))
+					comments.fields.add(new CommentField("TRACKNUMBER", indexplaylist.toString()));
+				else
+					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
+				
+				if (option.equals("album")) {
+					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
 					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
+				}
+				
 				VorbisIO.writeComments(file, comments);
 			} catch (IOException e) { e.printStackTrace(); }
 			
