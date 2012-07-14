@@ -107,7 +107,7 @@ public class Justify extends JotifyConnection{
 						
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
-						justify.downloadTrack(track, null, formataudio, "track");
+						justify.downloadTrack(track, null, formataudio, "track", 0);
 						
 					}else if (uri.isPlaylistLink()){
 						
@@ -120,7 +120,7 @@ public class Justify extends JotifyConnection{
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");							
-							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist");
+							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indexplaylist);
 							indexplaylist++;
 						}
 						indexplaylist = 0;
@@ -140,7 +140,7 @@ public class Justify extends JotifyConnection{
 									counter++;
 									try {
 										if (args.length == 5 || (args.length == 6 && track.getTrackNumber() >= Integer.parseInt(numbersong))) {
-											justify.downloadTrack(track, directorio, formataudio, "album");
+											justify.downloadTrack(track, directorio, formataudio, "album", 0);
 											downloaded = true;
 										}
 									} catch (TimeoutException te1){
@@ -193,7 +193,7 @@ public class Justify extends JotifyConnection{
 		System.out.println("[100%] Album cover  <-  OK!");
 	}
 
-	private void downloadTrack(Track track, String parent, String bitrate, String option) throws JustifyException, TimeoutException{	
+	private void downloadTrack(Track track, String parent, String bitrate, String option, Integer indexplaylist) throws JustifyException, TimeoutException{	
 		if(track.getAlbum().getDiscs().size() > 1) {
 			if(track.getTrackNumber() < oldtracknumber) {
 				discindex++;
@@ -202,7 +202,14 @@ public class Justify extends JotifyConnection{
 		}
 		
 		try{
-			String nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
+			String nombre="";
+			
+			if(option.equals("album"))
+				nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " ";
+			else if (option.equals("playlist"))
+				nombre = (indexplaylist < 10 ? "0" : "") + indexplaylist.toString() + " ";
+				
+			nombre =  nombre + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
 			DecimalFormat f = new DecimalFormat( "00" );
 			
