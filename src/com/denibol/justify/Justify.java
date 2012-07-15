@@ -147,7 +147,7 @@ public class Justify extends JotifyConnection{
 					uri = Link.create(coverURI);
 
 				if(toplist_type!=null) {
-					Result result = justify.toplist("track", "ES", null);
+					Result result = justify.toplist("track", country, null);
 					Integer index = 1;
 					for(Track track : result.getTracks()) {
 						System.out.println(index.toString() + " " + track.getArtist().getName() + " - " + track.getTitle());
