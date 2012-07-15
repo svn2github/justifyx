@@ -37,8 +37,8 @@ public class SpotifyInputStream extends InputStream implements ChannelListener {
 	 * substream size of 30 seconds 320 kbps
 	 * audio data.
 	 */
-	private static final int CHUNK_SIZE     = 4096;
-	private static final int SUBSTREAM_SIZE = 320 * 1024 * 30 / 8;
+	private int CHUNK_SIZE;
+	private int SUBSTREAM_SIZE;
 	
 	/* 
 	 * Protocol, track and file for
@@ -86,11 +86,13 @@ public class SpotifyInputStream extends InputStream implements ChannelListener {
 	private Lock      requestLock;
 	private Condition requestCondition;
 	
-	public SpotifyInputStream(Protocol protocol, Track track, String bitrate) throws TimeoutException {
+	public SpotifyInputStream(Protocol protocol, Track track, String bitrate, int chunk_size, int substream_size) throws TimeoutException {
 		/* Set Protocol, Track and get File with right bitrate. */
 		this.protocol = protocol;
 		this.track    = track;
 		this.file     = track.getFile(bitrate);
+		this.CHUNK_SIZE = chunk_size;
+		this.SUBSTREAM_SIZE = substream_size;
 		
 		/* Initialize sparse buffer. */
 		this.chunks = new HashMap<Integer,byte[]>();
