@@ -94,7 +94,7 @@ public class Justify extends JotifyConnection{
     @Option(name="-toplist-region", metaVar ="<region>", usage="Specify region of toplist to download.\nNot specified: default region of the user.\n    region (2 letters): an specified region.\n    ALL: any place toplist")
     private static String toplist_region;
 
-    @Option(name="-oggcover", metaVar ="<method>", usage="Method to embed cover in ogg file. Options:\n    new: New method\n    old: Old method")
+    @Option(name="-oggcover", metaVar ="<method>", usage="Method to embed cover in ogg file. Options:\n    new: new method (METADATA_BLOCK_PICTURE)\n    old: old method (default, COVERART and COVERARTMIME)\n    none: not embed cover in ogg")
     private static String oggcover = "old";
  
     @Option(name="-timeout", metaVar ="<seconds>", usage="Number of seconds before throwing a timeout")
@@ -346,7 +346,7 @@ public class Justify extends JotifyConnection{
 				VorbisCommentHeader comments = new VorbisCommentHeader();
 				
 				// Embeds cover in .ogg for tracks and playlists (not albums)
-				if(option.equals("track") || option.equals("playlist")) {
+				if((option.equals("track") || option.equals("playlist")) && (!oggcover.equals("none"))) {
 					byte[] imagedata = null;
 					try{
 						BufferedImage image = (BufferedImage) this.image(track.getCover());
