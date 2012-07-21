@@ -88,8 +88,8 @@ public class Justify extends JotifyConnection{
     @Option(name="-codec", metaVar ="<format>", usage="Specify codec and bitrate of the download. Options:\n    ogg_96: Ogg Vorbis @ 96kbps\n    ogg_160: Ogg Vorbis @ 160kbps\n    ogg_320: Ogg Vorbis @ 320kbps")
     private static String formataudio = "ogg_320";
     
-    @Option(name="-toplist", metaVar ="<type>", usage="Downloads toplist tracks/albums/artists.\n    tracks: tracks toplist\n    albums: albums toplist\n    artists: artists toplist")
-    private static String toplist_type;
+    @Option(name="-toplist", metaVar ="<type>", usage="Downloads toplist tracks/albums/artists.\n    track: tracks toplist\n    album: albums toplist\n    artist: artists toplist")
+    private static String toplist_type = "track";
     
     @Option(name="-toplist-region", metaVar ="<region>", usage="Specify region of toplist to download.\nNot specified: default region of the user.\n    region (2 letters): an specified region.\n    ALL: any place toplist")
     private static String toplist_region;
@@ -136,7 +136,7 @@ public class Justify extends JotifyConnection{
 			System.out.println();
 			if (!usuario.isPremium()) throw new JustifyException("[ERROR] You must be a 'premium' user");
 			
-			if(toplist_type!=null && toplist_region==null) toplist_region=country;
+			if(toplist_region==null) toplist_region=country;
 			
 			try{
 				Link uri = null;
@@ -146,16 +146,18 @@ public class Justify extends JotifyConnection{
 				else if(coverURI!=null)
 					uri = Link.create(coverURI);
 
-				if(toplist_type!=null) {
-					Result result = justify.toplist("track", country, null);
-					Integer index = 1;
+				if(downloadURI==null && coverURI==null) {
+					Result result = justify.toplist(toplist_type, toplist_region, null);
+					String directorio = "toplist";
+					Integer indextoplist = 1;
+					System.out.println("Toplist: " + toplist_type + " | Region: " + toplist_region + " | Tracks: " + result.getTotalTracks());
+					System.out.println();
 					for(Track track : result.getTracks()) {
-						System.out.println(index.toString() + " " + track.getArtist().getName() + " - " + track.getTitle());
-						index++;
+						justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indextoplist);
+						indextoplist++;
 					}
 				} else if(downloadURI!=null) {
 					if (uri.isTrackLink()){
-						
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
 						justify.downloadTrack(track, null, formataudio, "track", 0);
@@ -176,7 +178,7 @@ public class Justify extends JotifyConnection{
 						}
 						indexplaylist = 0;
 						System.out.println("[100%] Playlist downloaded");
-							
+
 					}else if(uri.isAlbumLink()){
 							Album album = justify.browseAlbum(uri.getId());
 							if (album == null) throw new JustifyException("[ERROR] Album not found");
@@ -271,7 +273,9 @@ public class Justify extends JotifyConnection{
 	}
 
 	private void downloadTrack(Track track, String parent, String bitrate, String option, Integer indexplaylist) throws JustifyException, TimeoutException{	
-		if(track.getAlbum().getDiscs().size() > 1) {
+		
+		// Downloading an album, if the new track number is lower than the previous downloaded song, it means we are in a new disc
+		if(option.equals("album")) {
 			if(track.getTrackNumber() < oldtracknumber) {
 				discindex++;
 				oldtracknumber = 1;
