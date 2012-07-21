@@ -146,6 +146,7 @@ public class Justify extends JotifyConnection{
 				else if(coverURI!=null)
 					uri = Link.create(coverURI);
 
+				// Toplist command
 				if(downloadURI==null && coverURI==null) {
 					Result result = justify.toplist(toplist_type, toplist_region, null);
 					String directorio = "toplist";
@@ -156,14 +157,20 @@ public class Justify extends JotifyConnection{
 						justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indextoplist);
 						indextoplist++;
 					}
-				} else if(downloadURI!=null) {
+				}
+				
+				// Download command
+				else if(downloadURI!=null) {
+					
+					// Download track command
 					if (uri.isTrackLink()){
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
 						justify.downloadTrack(track, null, formataudio, "track", 0);
-						
-					}else if (uri.isPlaylistLink()){
-						
+					}
+					
+					// Download playlist command
+					else if (uri.isPlaylistLink()){
 						Playlist playlist = justify.playlist(uri.getId());
 						if (playlist == null) throw new JustifyException("[ERROR] Playlist not found");
 						System.out.println("Playlist: " + playlist.getName() + " | Author: " + playlist.getAuthor() + " | Tracks: " + playlist.getTracks().size());
@@ -178,8 +185,10 @@ public class Justify extends JotifyConnection{
 						}
 						indexplaylist = 0;
 						System.out.println("[100%] Playlist downloaded");
-
-					}else if(uri.isAlbumLink()){
+					}
+					
+					// Download album command
+					else if(uri.isAlbumLink()){
 							Album album = justify.browseAlbum(uri.getId());
 							if (album == null) throw new JustifyException("[ERROR] Album not found");
 							System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName() + " | Tracks: " + album.getTracks().size() +" | Discs: " + album.getDiscs().size());
@@ -207,7 +216,10 @@ public class Justify extends JotifyConnection{
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
 					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
-				} else if(coverURI!=null){
+				}
+				
+				// Cover command
+				else if(coverURI!=null){
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album not found");
@@ -234,8 +246,6 @@ public class Justify extends JotifyConnection{
 
         try {
             parser.parseArgument(args);
-            
-
         } catch( CmdLineException e ) {
             // if there's a problem in the command line,
             // you'll get this exception. this will report
@@ -273,7 +283,7 @@ public class Justify extends JotifyConnection{
 	}
 
 	private void downloadTrack(Track track, String parent, String bitrate, String option, Integer indexplaylist) throws JustifyException, TimeoutException{	
-		
+
 		// Downloading an album, if the new track number is lower than the previous downloaded song, it means we are in a new disc
 		if(option.equals("album")) {
 			if(track.getTrackNumber() < oldtracknumber) {
@@ -283,58 +293,61 @@ public class Justify extends JotifyConnection{
 		}
 		
 		try{
-			String nombre="";
-			
-			if(option.equals("album"))
-				nombre = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " ";
-			else if (option.equals("playlist"))
-				nombre = (indexplaylist < 10 ? "0" : "") + indexplaylist.toString() + " ";
-				
-			nombre =  nombre + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
-			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(nombre));
+			String filename="";
 			DecimalFormat f = new DecimalFormat( "00" );
 			
-			if(option.equals("playlist"))
-				System.out.print(sanearNombre(nombre));
-			else if (option.equals("album"))
-				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(nombre));
-			else if (option.equals("track"))
-				System.out.print(sanearNombre(nombre));
+			// Filename: sets the numbering of the track if it is an album / playlist
+			if(option.equals("album")) {
+				// Numbering of filename when downloads an album. numbering = "[number_of_disc] + number_of_track" : e.g. "101"
+				filename = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber();
+			}
+			else if (option.equals("playlist")) {
+				// Numbering of filename when downloads a playlist. numbering = "indexplaylist" : e.g. "01"
+				filename = (indexplaylist < 10 ? "0" : "") + indexplaylist.toString();
+			}
 			
+			// Filename: sets the final name to "numbering Album_Artist - Track_Title.ogg"
+			filename =  filename + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
+			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(filename));
+
+			// Prints filename and with a progress percentage if downloading an album
+			if(option.equals("track") || option.equals("playlist"))
+				System.out.print(sanearNombre(filename));
+			else if (option.equals("album"))
+				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(filename));
+			
+			// Create directory
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
+			// Check restrictions and parse alternative files checking their restrictions
 			boolean allowed = true;
 			Integer nalternative = 0;
             Integer talternative = 0;
             
             if(track.getRestrictions().get(0).getForbidden() != null)
-                    if(track.getRestrictions().get(0).getForbidden().contains(country) == true) {
+                    if(track.getRestrictions().get(0).getForbidden().contains(country) == true)
                             allowed = false;
-                    }
                                     
             if(track.getRestrictions().get(0).getAllowed() != null)
-                    if (track.getRestrictions().get(0).getAllowed().contains(country) == false) {
+                    if (track.getRestrictions().get(0).getAllowed().contains(country) == false)
                             allowed = false;
-                    }
             
             if (allowed == false) {
                     for(Track pista : track.getAlternatives()) {
                             nalternative++;
                             if(pista.getRestrictions().get(0).getForbidden() != null)
-                                    if(pista.getRestrictions().get(0).getForbidden().contains(country) == true) {
+                                    if(pista.getRestrictions().get(0).getForbidden().contains(country) == true)
                                             allowed = false;
-                                    }
                                     else {
                                     	allowed = true;
                                     	talternative++;
                                     }
                             
-                            if(pista.getRestrictions().get(0).getAllowed() != null) {
+                            if(pista.getRestrictions().get(0).getAllowed() != null)
                                     if (pista.getRestrictions().get(0).getAllowed().contains(country) == true) {
                                             allowed = true;
                                             talternative = nalternative;
                                     }
-                            }
                     }
             }
 			
@@ -377,11 +390,13 @@ public class Justify extends JotifyConnection{
 				comments.fields.add(new CommentField("TITLE", track.getTitle()));
 				comments.fields.add(new CommentField("DATE", String.valueOf(track.getYear())));
 				
+				// Sets track_number to real track number except in playlists
 				if(option.equals("playlist"))
 					comments.fields.add(new CommentField("TRACKNUMBER", indexplaylist.toString()));
 				else
 					comments.fields.add(new CommentField("TRACKNUMBER", String.valueOf(track.getTrackNumber())));
 				
+				// Sets disc_number and total_discs only when downloading an album
 				if (option.equals("album")) {
 					comments.fields.add(new CommentField("DISCNUMBER", discindex.toString()));
 					comments.fields.add(new CommentField("TOTALDISCS", String.valueOf(track.getAlbum().getDiscs().size())));
@@ -402,7 +417,7 @@ public class Justify extends JotifyConnection{
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate, chunksize, substreamsize);
 
 		byte[] buf = new byte[8192];
-		sis.read(buf, 0, 167); // Skip Spotify OGG Header, no se puede usar skip() porque aun no hay datos leidos por ningun read()
+		sis.read(buf, 0, 167); // Skip Spotify OGG Header
 
 		while (true) {
 			int length = sis.read(buf);
@@ -412,7 +427,6 @@ public class Justify extends JotifyConnection{
 		
 		sis.close();
 		fos.close();
-		
 	}
 
 	public static boolean isWindows(){
@@ -457,6 +471,5 @@ public class Justify extends JotifyConnection{
 			regexMatcher.appendTail(resultString);
 		} catch (Exception e){ throw new JustifyException(e); }
 		return resultString.toString();
-    }
-	
+    }	
 }
