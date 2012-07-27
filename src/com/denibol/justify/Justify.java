@@ -99,9 +99,6 @@ public class Justify extends JotifyConnection{
  
     @Option(name="-timeout", metaVar ="<seconds>", usage="Number of seconds before throwing a timeout")
     private static long TIMEOUT = 20;
-
-    @Option(name="-retries", metaVar ="<number>", usage="Number of retries trying to download a failing track (default: 5)")
-    private static int retries = 5;
     
     @Option(name="-chunksize", metaVar ="<bytes>", usage="Fixed chunk size (default: 4096 bytes)")
     private static int chunksize = 4096;
@@ -196,22 +193,11 @@ public class Justify extends JotifyConnection{
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
 							for(Track track : album.getTracks()){
 								boolean downloaded = false;
-								Integer counter = 0;
-								while(!downloaded && (counter<retries)) {		
-									counter++;
-									try {
+								while(!downloaded) {
 										if (songnumber == 0 || track.getTrackNumber() >= songnumber) {
 											justify.downloadTrack(track, directorio, formataudio, "album", 0);
 											downloaded = true;
 										}
-									} catch (TimeoutException te1){
-										if(counter != retries)
-											System.out.println("  <-  Timeout! Trying again in 5 secs... (x" + counter.toString() + ")");
-										else
-											System.out.println("  <-  Timeout! Skipping track...");
-										
-										Thread.sleep(5000);
-									}
 								}
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
@@ -316,6 +302,7 @@ public class Justify extends JotifyConnection{
 			else if (option.equals("album"))
 				System.out.print("[" + f.format((track.getTrackNumber() - 1) * 100 / track.getAlbum().getTracks().size()) + "%] " + sanearNombre(filename));
 			
+			System.out.print(" ");
 			// Create directory
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
@@ -405,7 +392,7 @@ public class Justify extends JotifyConnection{
 				VorbisIO.writeComments(file, comments);
 			} catch (IOException e) { e.printStackTrace(); }
 			
-			System.out.println("  <-  OK!");
+			System.out.println(" ok");
 		}catch(FileNotFoundException fnfe){ fnfe.printStackTrace();
 		}catch(IOException ioe){ ioe.printStackTrace();
 		}
@@ -416,13 +403,21 @@ public class Justify extends JotifyConnection{
 		FileOutputStream fos = new FileOutputStream(file);
 		SpotifyInputStream sis = new SpotifyInputStream(protocol, track, bitrate, chunksize, substreamsize);
 
+		System.out.print(".");
+
+		int counter = 0;
 		byte[] buf = new byte[8192];
 		sis.read(buf, 0, 167); // Skip Spotify OGG Header
 
 		while (true) {
+			counter++;
 			int length = sis.read(buf);
 			if (length < 0) break;
 			fos.write(buf, 0, length);
+			if(counter==256) {
+				counter = 0;
+				System.out.print(".");
+			}
 		}
 		
 		sis.close();
