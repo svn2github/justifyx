@@ -26,7 +26,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -145,8 +147,10 @@ public class Justify extends JotifyConnection{
 
 				// Toplist command
 				if(downloadURI==null && coverURI==null) {
-					Result result = justify.toplist(toplist_type, toplist_region, null);
-					String directorio = "toplist";
+					Result result = justify.toplist(toplist_type, toplist_region.equals("ALL") ? null : toplist_region, null);
+					Date now = new Date();
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+					String directorio = sdf.format(now) + " toplist-" + toplist_type + "-" + toplist_region;
 					Integer indextoplist = 1;
 					System.out.println("Toplist: " + toplist_type + " | Region: " + toplist_region + " | Tracks: " + result.getTotalTracks());
 					System.out.println();
