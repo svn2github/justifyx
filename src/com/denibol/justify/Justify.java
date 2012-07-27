@@ -93,13 +93,13 @@ public class Justify extends JotifyConnection{
     @Option(name="-toplist", metaVar ="<type>", usage="Downloads toplist tracks/albums/artists.\n    track: tracks toplist\n    album: albums toplist\n    artist: artists toplist")
     private static String toplist_type = "track";
     
-    @Option(name="-toplist-region", metaVar ="<region>", usage="Specify region of toplist to download.\nNot specified: default region of the user.\n    region (2 letters): an specified region.\n    ALL: any place toplist")
+    @Option(name="-toplist-region", metaVar ="<region>", usage="Specify region of toplist to download.\nNot specified: default region of the user.\n    region (2 letters): a specified region.\n    ALL: all regions toplist")
     private static String toplist_region;
 
     @Option(name="-oggcover", metaVar ="<method>", usage="Method to embed cover in ogg file. Options:\n    new: new method (METADATA_BLOCK_PICTURE)\n    old: old method (default, COVERART and COVERARTMIME)\n    none: not embed cover in ogg")
     private static String oggcover = "old";
  
-    @Option(name="-timeout", metaVar ="<seconds>", usage="Number of seconds before throwing a timeout")
+    @Option(name="-timeout", metaVar ="<seconds>", usage="Number of seconds before throwing a timeout (default: 20 seconds)")
     private static long TIMEOUT = 20;
     
     @Option(name="-chunksize", metaVar ="<bytes>", usage="Fixed chunk size (default: 4096 bytes)")
