@@ -90,7 +90,7 @@ public class Justify extends JotifyConnection{
     @Option(name="-codec", metaVar ="<format>", usage="Specify codec and bitrate of the download. Options:\n    ogg_96: Ogg Vorbis @ 96kbps\n    ogg_160: Ogg Vorbis @ 160kbps\n    ogg_320: Ogg Vorbis @ 320kbps")
     private static String formataudio = "ogg_320";
     
-    @Option(name="-toplist", metaVar ="<type>", usage="Downloads toplist tracks/albums/artists.\n    track: tracks toplist\n    album: albums toplist\n    artist: artists toplist")
+    @Option(name="-toplist", metaVar ="<type>", usage="Downloads toplist tracks/albums/artists.\n    track: tracks toplist")
     private static String toplist_type = "track";
     
     @Option(name="-toplist-region", metaVar ="<region>", usage="Specify region of toplist to download.\nNot specified: default region of the user.\n    region (2 letters): a specified region.\n    ALL: all regions toplist")
@@ -154,9 +154,12 @@ public class Justify extends JotifyConnection{
 					Integer indextoplist = 1;
 					System.out.println("Toplist: " + toplist_type + " | Region: " + toplist_region + " | Tracks: " + result.getTotalTracks());
 					System.out.println();
-					for(Track track : result.getTracks()) {
-						justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indextoplist);
-						indextoplist++;
+					
+					if(toplist_type.equals("track")) {
+						for(Track track : result.getTracks()) {
+							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indextoplist);
+							indextoplist++;
+						}
 					}
 				}
 				
@@ -196,13 +199,8 @@ public class Justify extends JotifyConnection{
 							System.out.println();
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
 							for(Track track : album.getTracks()){
-								boolean downloaded = false;
-								while(!downloaded) {
-										if (songnumber == 0 || track.getTrackNumber() >= songnumber) {
-											justify.downloadTrack(track, directorio, formataudio, "album", 0);
-											downloaded = true;
-										}
-								}
+								if (songnumber == 0 || track.getTrackNumber() >= songnumber)
+									justify.downloadTrack(track, directorio, formataudio, "album", 0);
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
 					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
