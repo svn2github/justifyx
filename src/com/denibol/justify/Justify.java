@@ -287,15 +287,15 @@ public class Justify extends JotifyConnection{
 			// Filename: sets the numbering of the track if it is an album / playlist
 			if(option.equals("album")) {
 				// Numbering of filename when downloads an album. numbering = "[number_of_disc] + number_of_track" : e.g. "101"
-				filename = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber();
+				filename = (track.getAlbum().getDiscs().size() > 1 ? discindex : "") + (track.getTrackNumber() < 10 ? "0" : "") + track.getTrackNumber() + " ";
 			}
 			else if (option.equals("playlist")) {
 				// Numbering of filename when downloads a playlist. numbering = "indexplaylist" : e.g. "01"
-				filename = (indexplaylist < 10 ? "0" : "") + indexplaylist.toString();
+				filename = (indexplaylist < 10 ? "0" : "") + indexplaylist.toString() + " ";
 			}
 			
 			// Filename: sets the final name to "numbering Album_Artist - Track_Title.ogg"
-			filename =  filename + " " + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
+			filename =  filename + track.getAlbum().getArtist().getName() + " - " + track.getTitle() + ".ogg";
 			java.io.File file = new java.io.File(sanearNombre(parent), sanearNombre(filename));
 
 			// Prints filename and with a progress percentage if downloading an album
@@ -337,13 +337,15 @@ public class Justify extends JotifyConnection{
                                             allowed = true;
                                             talternative = nalternative;
                                     }
+                            
+                            //Map<String,String> exids;
                     }
             }
-			
+
             if (allowed && nalternative == 0) download(track, file, bitrate);
             else {
                     if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate); else {
-                    	System.out.println("  <-  KO! Region " + country + " not allowed");
+                    	System.out.println("-- ko!");
                     	return;
                     }
             }
