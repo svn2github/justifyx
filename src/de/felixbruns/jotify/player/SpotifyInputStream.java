@@ -176,8 +176,15 @@ public class SpotifyInputStream extends InputStream implements ChannelListener {
 			key = callback.get(1, TimeUnit.SECONDS);
 			if(key != null)
 				done=true;
-			else
-				System.out.println("TIMEOUT AES KEY");
+			else {
+				/* Send AES key request. */
+				try{
+					this.protocol.sendAesKeyRequest(callback, this.track, this.file);
+				}
+				catch(ProtocolException e){
+					return;
+				}
+			}
 		}
 			
 		/* Create SecretKeySpec from AES key bytes and set initial IV. */		
