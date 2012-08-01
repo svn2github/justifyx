@@ -183,7 +183,7 @@ public class Justify extends JotifyConnection{
 						DecimalFormat f = new DecimalFormat( "00" );
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
-							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");							
+							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");						
 							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indexplaylist);
 							indexplaylist++;
 						}
@@ -343,13 +343,15 @@ public class Justify extends JotifyConnection{
             }
 
             if (allowed && nalternative == 0) download(track, file, bitrate);
+            else if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate);
             else {
-                    if (allowed && nalternative > 0 )
-                    	download(track.getAlternatives().get(talternative-1), file, bitrate);
-                    else {
-                    	System.out.println("-- ko!");
-                    	return;
-                    }
+            	System.out.println("-- ko!");
+            	return;
+            }
+            
+            if(track.getFiles().size()==0) {
+            	System.out.println("-- ko!");
+            	return;
             }
 
 			try {
