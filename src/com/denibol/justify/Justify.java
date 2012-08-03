@@ -157,7 +157,7 @@ public class Justify extends JotifyConnection{
 					
 					if(toplist_type.equals("track")) {
 						for(Track track : result.getTracks()) {
-							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indextoplist);
+							justify.downloadTrack(justify, justify.browse(track), directorio, formataudio, "playlist", indextoplist);
 							indextoplist++;
 						}
 					}
@@ -170,7 +170,7 @@ public class Justify extends JotifyConnection{
 					if (uri.isTrackLink()){
 						Track track = justify.browseTrack(uri.getId());
 						if (track == null) throw new JustifyException("[ERROR] Track not found");
-						justify.downloadTrack(track, null, formataudio, "track", 0);
+						justify.downloadTrack(justify, track, null, formataudio, "track", 0);
 					}
 					
 					// Download playlist command
@@ -184,7 +184,7 @@ public class Justify extends JotifyConnection{
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");						
-							justify.downloadTrack(justify.browse(track), directorio, formataudio, "playlist", indexplaylist);
+							justify.downloadTrack(justify, justify.browse(track), directorio, formataudio, "playlist", indexplaylist);
 							indexplaylist++;
 						}
 						indexplaylist = 0;
@@ -202,7 +202,7 @@ public class Justify extends JotifyConnection{
 							for(Track track : album.getTracks()){
 								ntrack++;
 								if (songnumber == 0 || track.getTrackNumber() >= songnumber)
-									justify.downloadTrack(track, directorio, formataudio, "album", ntrack);
+									justify.downloadTrack(justify, track, directorio, formataudio, "album", ntrack);
 							}
 							justify.downloadCover(justify.image(album.getCover()), directorio);			
 					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
@@ -272,7 +272,7 @@ public class Justify extends JotifyConnection{
 		System.out.println("[100%] Album cover  <-  OK!");
 	}
 
-	private void downloadTrack(Track track, String parent, String bitrate, String option, Integer index) throws JustifyException, TimeoutException{	
+	private void downloadTrack(Justify justify, Track track, String parent, String bitrate, String option, Integer index) throws JustifyException, TimeoutException{	
 
 		// Downloading an album, if the new track number is lower than the previous downloaded song, it means we are in a new disc
 		if(option.equals("album")) {
@@ -310,6 +310,10 @@ public class Justify extends JotifyConnection{
 			// Create directory
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
+			// Get replacement track. Sometimes it gets the same track
+			if(justify.replacement(track).getId() != null)
+				track = justify.replacement(track);
+			
 			// Check restrictions and parse alternative files checking their restrictions
 			boolean allowed = true;
 			Integer nalternative = 0;
@@ -341,15 +345,15 @@ public class Justify extends JotifyConnection{
                                     }
                     }
             }
-
-            if (allowed && nalternative == 0) download(track, file, bitrate);
-            else if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate);
-            else {
+            
+            if(track.getFiles().size()==0) {
             	System.out.println("-- ko!");
             	return;
             }
             
-            if(track.getFiles().size()==0) {
+            if (allowed && nalternative == 0) download(track, file, bitrate);
+            else if (allowed && nalternative > 0 ) download(track.getAlternatives().get(talternative-1), file, bitrate);
+            else {
             	System.out.println("-- ko!");
             	return;
             }
@@ -378,7 +382,7 @@ public class Justify extends JotifyConnection{
 						}
 					}				
 				}
-				
+
 				comments.fields.add(new CommentField("ARTIST", track.getArtist().getName()));
 				comments.fields.add(new CommentField("ALBUM ARTIST", track.getAlbum().getArtist().getName()));
 				comments.fields.add(new CommentField("ALBUM", track.getAlbum().getName()));
