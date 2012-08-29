@@ -254,7 +254,12 @@ public class XMLPlaylistParser extends XMLParser implements XMLStreamConstants {
 							List<Track> tracks = new ArrayList<Track>();
 							
 							while(tokenizer.hasMoreTokens()){
-								tracks.add(new Track(tokenizer.nextToken().substring(0, 32)));
+								String track_id = tokenizer.nextToken().substring(0, 32);
+								
+								if (!track_id.startsWith("spotify:local"))
+									tracks.add(new Track(track_id));
+								else
+									System.out.println("didn't add local file: " +track_id);
 							}
 							
 							((Playlist)object).setTracks(tracks);
