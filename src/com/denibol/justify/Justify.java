@@ -232,7 +232,7 @@ public class Justify extends JotifyConnection{
 		}
 	}
 	
-    public void doMain(String[] args) throws IOException {
+    public void doMain(String[] args) {
         CmdLineParser parser = new CmdLineParser(this);
         
         parser.setUsageWidth(120);
