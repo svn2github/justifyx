@@ -108,6 +108,9 @@ public class Justify extends JotifyConnection{
     @Option(name="-substreamsize", metaVar ="<bytes>", usage="Fixed substream size (default: 30seconds of 320kbps audio data (320 * 1024 * 30 / 8) = 1228800 bytes)")
     private static int substreamsize = 320 * 1024 * 30 / 8;
     
+    @Option(name="-clean",usage="Write clean stream without tags or corrections")
+    private static boolean clean = false;
+    
     // receives other command line parameters than options
     @Argument
     private List<String> arguments = new ArrayList<String>();
@@ -250,7 +253,7 @@ public class Justify extends JotifyConnection{
             // print option sample. This is useful some time
             System.err.println("Example: java -jar justifyx.jar"+ parser.printExample(REQUIRED) + " -download <spotifyURI>");
 
-            return;
+            System.exit(-1);
         }
     }
     
@@ -269,7 +272,7 @@ public class Justify extends JotifyConnection{
 		IIOImage iimage = new IIOImage((BufferedImage) image, null, null);
 		writer.write(null, iimage, iwp);
 		writer.dispose();
-		System.out.println("[100%] Album cover  <-  OK!");
+		System.out.println("[100%] Album cover  -- ok");
 	}
 
 	private void downloadTrack(Justify justify, Track track, String parent, String bitrate, String option, Integer index) throws JustifyException, TimeoutException{	
@@ -327,11 +330,11 @@ public class Justify extends JotifyConnection{
                     if (track.getRestrictions().get(0).getAllowed().contains(country) == false)
                             allowed = false;
             
-            if (allowed == false) {
+            if (!allowed) {
                     for(Track pista : track.getAlternatives()) {
                             nalternative++;
                             if(pista.getRestrictions().get(0).getForbidden() != null)
-                                    if(pista.getRestrictions().get(0).getForbidden().contains(country) == true)
+                                    if(pista.getRestrictions().get(0).getForbidden().contains(country))
                                             allowed = false;
                                     else {
                                     	allowed = true;
@@ -339,7 +342,7 @@ public class Justify extends JotifyConnection{
                                     }
                             
                             if(pista.getRestrictions().get(0).getAllowed() != null)
-                                    if (pista.getRestrictions().get(0).getAllowed().contains(country) == true) {
+                                    if (pista.getRestrictions().get(0).getAllowed().contains(country)) {
                                             allowed = true;
                                             talternative = nalternative;
                                     }
@@ -358,7 +361,7 @@ public class Justify extends JotifyConnection{
             	return;
             }
 
-			try {
+			if (!clean) try {
 				VorbisCommentHeader comments = new VorbisCommentHeader();
 				
 				// Embeds cover in .ogg for tracks and playlists (not albums)
