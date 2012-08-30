@@ -78,7 +78,7 @@ public class Justify extends JotifyConnection{
     @Option(name="-password", metaVar = "<spotify_password>", usage="Spotify user password (required)", required=true)
     private static String password;
     
-    @Option(name="-cover", metaVar = "<spotifyURI>", usage="Downloads album cover")
+    @Option(name="-cover", metaVar = "<spotifyURI>", usage="Downloads track/album cover")
     private static String coverURI;
 
     @Option(name="-download", metaVar ="<spotifyURI>", usage="Downloads track/list/album")
@@ -108,7 +108,7 @@ public class Justify extends JotifyConnection{
     @Option(name="-substreamsize", metaVar ="<bytes>", usage="Fixed substream size (default: 30seconds of 320kbps audio data (320 * 1024 * 30 / 8) = 1228800 bytes)")
     private static int substreamsize = 320 * 1024 * 30 / 8;
     
-    @Option(name="-clean",usage="Write clean stream without tags or corrections")
+    @Option(name="-clean",usage="Write clean ogg without tags")
     private static boolean clean = false;
     
     // receives other command line parameters than options
@@ -183,7 +183,7 @@ public class Justify extends JotifyConnection{
 						System.out.println("Playlist: " + playlist.getName() + " | Author: " + playlist.getAuthor() + " | Tracks: " + playlist.getTracks().size());
 						System.out.println();
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
-						DecimalFormat f = new DecimalFormat( "00" );
+						DecimalFormat f = new DecimalFormat("00");
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");						
@@ -213,13 +213,21 @@ public class Justify extends JotifyConnection{
 				
 				// Cover command
 				else if(coverURI!=null){
+					if(uri.isTrackLink()){
+						Track track = justify.browseTrack(uri.getId());
+						if (track == null) throw new JustifyException("[ERROR] Track not found");
+						System.out.println("Track: " + track.getTitle() + " | Album: " + track.getAlbum().getName() + " | Artist: " + track.getArtist().getName());
+						System.out.println();
+						justify.downloadCover(justify.image(track.getCover()), ".");
+					}
+
 					if(uri.isAlbumLink()){
 						Album album = justify.browseAlbum(uri.getId());
 						if (album == null) throw new JustifyException("[ERROR] Album not found");
 						System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName());
 						System.out.println();
 						String directorio = replaceByReference(album, ALBUM_FORMAT);
-						justify.downloadCover(justify.image(album.getCover()), directorio);			
+						justify.downloadCover(justify.image(album.getCover()), directorio);
 					}
 				}
 			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Spotify URI is not valid"); }
@@ -272,7 +280,7 @@ public class Justify extends JotifyConnection{
 		IIOImage iimage = new IIOImage((BufferedImage) image, null, null);
 		writer.write(null, iimage, iwp);
 		writer.dispose();
-		System.out.println("[100%] Album cover  -- ok");
+		System.out.println("[100%] Cover ... ok");
 	}
 
 	private void downloadTrack(Justify justify, Track track, String parent, String bitrate, String option, Integer index) throws JustifyException, TimeoutException{	
