@@ -1,4 +1,4 @@
-package com.denibol.justify;
+package com.klaxnek.justifyx;
 
 import java.io.UnsupportedEncodingException;
 

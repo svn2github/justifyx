@@ -15,15 +15,15 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.denibol.justify;
+package com.klaxnek.justifyx;
 
-public class JustifyException extends Exception{
+public class JustifyxException extends Exception{
 
 	private static final long serialVersionUID = 4277008991210124116L;
 	
-	public JustifyException(String message){ super(message); }
-	public JustifyException(Throwable cause){ super(cause); }
-	public JustifyException(String message, Throwable cause){ super(message, cause); }
+	public JustifyxException(String message){ super(message); }
+	public JustifyxException(Throwable cause){ super(cause); }
+	public JustifyxException(String message, Throwable cause){ super(message, cause); }
 
 }
 

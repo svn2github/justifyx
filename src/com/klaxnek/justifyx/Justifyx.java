@@ -1,12 +1,12 @@
 /*
-    This file is part of Justify.
+    This file is part of justifyx.
 
-    Justify is free software: you can redistribute it and/or modify
+    justifyx is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Justify is distributed in the hope that it will be useful,
+    justifyx is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -15,7 +15,7 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.denibol.justify;
+package com.klaxnek.justifyx;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -64,7 +64,7 @@ import adamb.vorbis.CommentField;
 import adamb.vorbis.VorbisCommentHeader;
 import adamb.vorbis.VorbisIO;
 
-public class Justify extends JotifyConnection{
+public class Justifyx extends JotifyConnection{
 	private static Pattern REGEX = Pattern.compile(":(.*?):");
 	private static String ALBUM_FORMAT = ":artist.name: - :name:";
 	private static String PLAYLIST_FORMAT = ":author: - :name:";
@@ -81,7 +81,7 @@ public class Justify extends JotifyConnection{
     @Option(name="-cover", metaVar = "<spotifyURI>", usage="Downloads track/album cover")
     private static String coverURI;
 
-    @Option(name="-download", metaVar ="<spotifyURI>", usage="Downloads track/list/album")
+    @Option(name="-download", metaVar ="<spotifyURI> or <spotifyHTTPLink>", usage="Downloads track/list/album")
     private static String downloadURI;
     
     @Option(name="-number", metaVar ="<song_number>", usage="Downloads starting on the specified track number. Requires -download")
@@ -115,28 +115,24 @@ public class Justify extends JotifyConnection{
     @Argument
     private List<String> arguments = new ArrayList<String>();
 	
-	public static void main(String args[]) throws IOException, InterruptedException{
+	public static void main(String args[]) throws IOException, InterruptedException {
 		
-	    new Justify().doMain(args);
-		
-		if(coverURI==null && downloadURI==null && toplist_type==null) {
-			System.err.println();
-			System.err.println("[ERROR] Needs something to download");
-			return;
-		}
+	    new Justifyx().doMain(args);
 	    
-		Justify justify = new Justify();
-		try{
+		Justifyx justifyx = new Justifyx();
+		
+		try {
 
-			try{ justify.login(user, password);
-			}catch(ConnectionException ce){ throw new JustifyException("[ERROR] Error connecting the server");
-			}catch(AuthenticationException ae){ throw new JustifyException("[ERROR] User or password is not valid"); }
+			try {
+				justifyx.login(user, password);
+			} catch(ConnectionException ce) { throw new JustifyxException("[ERROR] Error connecting the server");
+			} catch(AuthenticationException ae) { throw new JustifyxException("[ERROR] User or password is not valid"); }
 			
-			User usuario = justify.user();
-			country = usuario.getCountry();
-			System.out.println(usuario);
+			User spotifyuser = justifyx.user();
+			country = spotifyuser.getCountry();
+			System.out.println(spotifyuser);
 			System.out.println();
-			if (!usuario.isPremium()) throw new JustifyException("[ERROR] You must be a 'premium' user");
+			if (!spotifyuser.isPremium()) throw new JustifyxException("[ERROR] You must be a 'premium' user");
 			
 			if(toplist_region==null) toplist_region=country;
 			
@@ -150,7 +146,7 @@ public class Justify extends JotifyConnection{
 
 				// Toplist command
 				if(downloadURI==null && coverURI==null) {
-					Result result = justify.toplist(toplist_type, toplist_region.equals("ALL") ? null : toplist_region, null);
+					Result result = justifyx.toplist(toplist_type, toplist_region.equals("ALL") ? null : toplist_region, null);
 					Date now = new Date();
 					SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 					String directorio = sdf.format(now) + " toplist-" + toplist_type + "-" + toplist_region;
@@ -160,7 +156,7 @@ public class Justify extends JotifyConnection{
 					
 					if(toplist_type.equals("track")) {
 						for(Track track : result.getTracks()) {
-							justify.downloadTrack(justify, justify.browse(track), directorio, formataudio, "playlist", indextoplist);
+							justifyx.downloadTrack(justifyx, justifyx.browse(track), directorio, formataudio, "playlist", indextoplist);
 							indextoplist++;
 						}
 					}
@@ -171,15 +167,15 @@ public class Justify extends JotifyConnection{
 					
 					// Download track command
 					if (uri.isTrackLink()){
-						Track track = justify.browseTrack(uri.getId());
-						if (track == null) throw new JustifyException("[ERROR] Track not found");
-						justify.downloadTrack(justify, track, null, formataudio, "track", 0);
+						Track track = justifyx.browseTrack(uri.getId());
+						if (track == null) throw new JustifyxException("[ERROR] Track not found");
+						justifyx.downloadTrack(justifyx, track, null, formataudio, "track", 0);
 					}
 					
 					// Download playlist command
 					else if (uri.isPlaylistLink()){
-						Playlist playlist = justify.playlist(uri.getId());
-						if (playlist == null) throw new JustifyException("[ERROR] Playlist not found");
+						Playlist playlist = justifyx.playlist(uri.getId());
+						if (playlist == null) throw new JustifyxException("[ERROR] Playlist not found");
 						System.out.println("Playlist: " + playlist.getName() + " | Author: " + playlist.getAuthor() + " | Tracks: " + playlist.getTracks().size());
 						System.out.println();
 						String directorio = replaceByReference(playlist, PLAYLIST_FORMAT);
@@ -187,7 +183,7 @@ public class Justify extends JotifyConnection{
 						Integer indexplaylist = 1;
 						for(Track track : playlist.getTracks()) {
 							System.out.print("[" + f.format((indexplaylist - 1) * 100 / playlist.getTracks().size()) + "%] ");						
-							justify.downloadTrack(justify, justify.browse(track), directorio, formataudio, "playlist", indexplaylist);
+							justifyx.downloadTrack(justifyx, justifyx.browse(track), directorio, formataudio, "playlist", indexplaylist);
 							indexplaylist++;
 						}
 						indexplaylist = 0;
@@ -196,8 +192,8 @@ public class Justify extends JotifyConnection{
 					
 					// Download album command
 					else if(uri.isAlbumLink()){
-							Album album = justify.browseAlbum(uri.getId());
-							if (album == null) throw new JustifyException("[ERROR] Album not found");
+							Album album = justifyx.browseAlbum(uri.getId());
+							if (album == null) throw new JustifyxException("[ERROR] Album not found");
 							System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName() + " | Tracks: " + album.getTracks().size() +" | Discs: " + album.getDiscs().size());
 							System.out.println();
 							String directorio = replaceByReference(album, ALBUM_FORMAT);
@@ -205,37 +201,37 @@ public class Justify extends JotifyConnection{
 							for(Track track : album.getTracks()){
 								ntrack++;
 								if (songnumber == 0 || track.getTrackNumber() >= songnumber)
-									justify.downloadTrack(justify, track, directorio, formataudio, "album", ntrack);
+									justifyx.downloadTrack(justifyx, track, directorio, formataudio, "album", ntrack);
 							}
-							justify.downloadCover(justify.image(album.getCover()), directorio);			
-					} else throw new JustifyException("[ERROR] Track, album or playlist not specified");
+							justifyx.downloadCover(justifyx.image(album.getCover()), directorio);			
+					} else throw new JustifyxException("[ERROR] Track, album or playlist not specified");
 				}
 				
 				// Cover command
 				else if(coverURI!=null){
 					if(uri.isTrackLink()){
-						Track track = justify.browseTrack(uri.getId());
-						if (track == null) throw new JustifyException("[ERROR] Track not found");
+						Track track = justifyx.browseTrack(uri.getId());
+						if (track == null) throw new JustifyxException("[ERROR] Track not found");
 						System.out.println("Track: " + track.getTitle() + " | Album: " + track.getAlbum().getName() + " | Artist: " + track.getArtist().getName());
 						System.out.println();
-						justify.downloadCover(justify.image(track.getCover()), ".");
+						justifyx.downloadCover(justifyx.image(track.getCover()), ".");
 					}
 
 					if(uri.isAlbumLink()){
-						Album album = justify.browseAlbum(uri.getId());
-						if (album == null) throw new JustifyException("[ERROR] Album not found");
+						Album album = justifyx.browseAlbum(uri.getId());
+						if (album == null) throw new JustifyxException("[ERROR] Album not found");
 						System.out.println("Album: " + album.getName() + " | Artist: " + album.getArtist().getName());
 						System.out.println();
 						String directorio = replaceByReference(album, ALBUM_FORMAT);
-						justify.downloadCover(justify.image(album.getCover()), directorio);
+						justifyx.downloadCover(justifyx.image(album.getCover()), directorio);
 					}
 				}
-			}catch (InvalidSpotifyURIException urie){ throw new JustifyException("[ERROR] Spotify URI is not valid"); }
+			}catch (InvalidSpotifyURIException urie){ throw new JustifyxException("[ERROR] Spotify URI is not valid"); }
 				
-		}catch (JustifyException je){ System.err.println(je.getMessage()); je.printStackTrace();
+		}catch (JustifyxException je){ System.err.println(je.getMessage()); je.printStackTrace();
 		}catch (TimeoutException te){ System.err.println(te.getMessage()); te.printStackTrace();
 		}finally{
-			try{ justify.close();
+			try{ justifyx.close();
 			}catch (ConnectionException ce){ System.err.println("[ERROR] Problem disconnecting"); } 
 		}
 	}
@@ -265,7 +261,7 @@ public class Justify extends JotifyConnection{
         }
     }
     
-	public Justify(){ super(TIMEOUT, TimeUnit.SECONDS); }
+	public Justifyx(){ super(TIMEOUT, TimeUnit.SECONDS); }
 	
 	private void downloadCover(Image image, String parent) throws TimeoutException, IOException {
 		Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
@@ -283,7 +279,7 @@ public class Justify extends JotifyConnection{
 		System.out.println("[100%] Cover ... ok");
 	}
 
-	private void downloadTrack(Justify justify, Track track, String parent, String bitrate, String option, Integer index) throws JustifyException, TimeoutException{	
+	private void downloadTrack(Justifyx justifyx, Track track, String parent, String bitrate, String option, Integer index) throws JustifyxException, TimeoutException{	
 
 		// Downloading an album, if the new track number is lower than the previous downloaded song, it means we are in a new disc
 		if(option.equals("album")) {
@@ -322,8 +318,8 @@ public class Justify extends JotifyConnection{
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
 			// Get replacement track. Sometimes it gets the same track
-			if(justify.replacement(track).getId() != null)
-				track = justify.replacement(track);
+			if(justifyx.replacement(track).getId() != null)
+				track = justifyx.replacement(track);
 			
 			// Check restrictions and parse alternative files checking their restrictions
 			boolean allowed = true;
@@ -467,7 +463,7 @@ public class Justify extends JotifyConnection{
 
 	public static String capitalize(String s) { return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase(); }
 
-	public static String replaceByReference(Object inicial, String formato) throws JustifyException{
+	public static String replaceByReference(Object inicial, String formato) throws JustifyxException{
 		StringBuffer resultString = new StringBuffer();
 		try {
 
@@ -487,7 +483,7 @@ public class Justify extends JotifyConnection{
 				regexMatcher.appendReplacement(resultString, (String)objeto);
 			}
 			regexMatcher.appendTail(resultString);
-		} catch (Exception e){ throw new JustifyException(e); }
+		} catch (Exception e){ throw new JustifyxException(e); }
 		return resultString.toString();
     }	
 }

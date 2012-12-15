@@ -22,7 +22,7 @@
  *  vice versa.
  */
 
-package com.denibol.justify;
+package com.klaxnek.justifyx;
 
 import java.util.HashMap;
 import java.util.Map;
