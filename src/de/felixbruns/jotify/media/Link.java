@@ -43,13 +43,20 @@ public class Link {
 	public class InvalidSpotifyURIException extends Exception {
 		private static final long serialVersionUID = 1L;
 	}
-	
+		
 	/**
 	 * A regular expression to match artist, album and track URIs:
 	 * 
 	 * <pre>spotify:(artist|album|track):([0-9A-Za-z]{22})</pre>
 	 */
 	private static final Pattern mediaPattern = Pattern.compile("spotify:(artist|album|track):([0-9A-Za-z]{22})");
+
+	/**
+	 * A regular expression to match artist, album and track HTTP Links:
+	 * 
+	 * <pre>http://open.spotify.com/(artist|album|track)/([0-9A-Za-z]{22})</pre>
+	 */
+	private static final Pattern mediaPatternHTTP = Pattern.compile("http://open.spotify.com/(artist|album|track)/([0-9A-Za-z]{22})");
 	
 	/**
 	 * A regular expression to match playlist URIs:
@@ -57,6 +64,13 @@ public class Link {
 	 * <pre>spotify:user:([^:]+):playlist:([0-9A-Za-z]{22})</pre>
 	 */
 	private static final Pattern playlistPattern = Pattern.compile("spotify:user:([^:]+):playlist:([0-9A-Za-z]{22})");
+	
+	/**
+	 * A regular expression to match playlist HTTP links:
+	 * 
+	 * <pre>http://open.spotify.com/user/([^:]+)/playlist/([0-9A-Za-z]{22})</pre>
+	 */
+	private static final Pattern playlistPatternHTTP = Pattern.compile("http://open.spotify.com/user/([^:]+)/playlist/([0-9A-Za-z]{22})");
 	
 	/**
 	 * A regular expression to match search URIs:
@@ -116,12 +130,16 @@ public class Link {
 	private Link(String uri) throws InvalidSpotifyURIException {
 		/* Regex for matching Spotify URIs. */
 		Matcher mediaMatcher    = mediaPattern.matcher(uri);
+		Matcher mediaMatcherHTTP = mediaPatternHTTP.matcher(uri);
 		Matcher playlistMatcher = playlistPattern.matcher(uri);
+		Matcher playlistMatcherHTTP = playlistPatternHTTP.matcher(uri);
 		Matcher searchMatcher   = searchPattern.matcher(uri);
 		
-		/* Check if URI matches artist/album/track pattern. */
-		if(mediaMatcher.matches()){
-			String type = mediaMatcher.group(1);
+		/* Check if URI or HTTP link matches artist/album/track pattern. */
+		if(mediaMatcher.matches() || mediaMatcherHTTP.matches()){
+			Matcher tmpMatcher = mediaMatcher.matches() ? mediaMatcher : mediaMatcherHTTP;
+			
+			String type = tmpMatcher.group(1);
 			
 			if(type.equals("artist")){
 				this.type = Type.ARTIST;
@@ -136,15 +154,16 @@ public class Link {
 				throw new InvalidSpotifyURIException();
 			}
 			
-			this.id    = Link.toHex(mediaMatcher.group(2));
+			this.id    = Link.toHex(tmpMatcher.group(2));
 			this.user  = null;
 			this.query = null;
 		}
 		/* Check if URI matches playlist pattern. */
-		else if(playlistMatcher.matches()){
+		else if(playlistMatcher.matches() || playlistMatcherHTTP.matches()){
+			Matcher tmpplaylistMatcher = playlistMatcher.matches() ? playlistMatcher : playlistMatcherHTTP;
 			this.type  = Type.PLAYLIST;
-			this.user  = playlistMatcher.group(1);
-			this.id    = Link.toHex(playlistMatcher.group(2));
+			this.user  = tmpplaylistMatcher.group(1);
+			this.id    = Link.toHex(tmpplaylistMatcher.group(2));
 			this.query = null;
 		}
 		/* Check if URI matches search pattern. */
