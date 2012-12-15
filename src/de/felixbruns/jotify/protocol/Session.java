@@ -92,7 +92,7 @@ public class Session {
 	
 	/* Client ID and revision (Always up to date! ;-P) */
 	protected static final int CLIENT_ID       = 0x01040101; /* 0x010B0029 */
-	protected static final int CLIENT_REVISION = 0xFFFFFFFF;
+	protected static final int CLIENT_REVISION = 99999;
 	
 	/* Constructor for a new spotify session. */
 	public Session(){
