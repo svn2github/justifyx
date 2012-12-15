@@ -78,7 +78,7 @@ public class Justifyx extends JotifyConnection{
     @Option(name="-password", metaVar = "<spotify_password>", usage="Spotify user password (required)", required=true)
     private static String password;
     
-    @Option(name="-cover", metaVar = "<spotifyURI>", usage="Downloads track/album cover")
+    @Option(name="-cover", metaVar = "<spotifyURI> or <spotifyHTTPLink>", usage="Downloads track/album cover")
     private static String coverURI;
 
     @Option(name="-download", metaVar ="<spotifyURI> or <spotifyHTTPLink>", usage="Downloads track/list/album")
