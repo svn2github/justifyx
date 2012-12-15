@@ -108,13 +108,13 @@ public class Protocol {
 		/* Append fields to buffer. */
 		buffer.putShort((short)3); /* Version 3 */
 		buffer.putShort((short)0); /* Length (update later) */
-		buffer.putInt(this.session.clientOs);
-		buffer.putInt(0x00000000); /* Unknown */
+		buffer.putInt(0x00000300); /* Unknown */
+		buffer.putInt(0x00030c00); /* Unknown */
 		buffer.putInt(this.session.clientRevision);
-		buffer.putInt(0x1541ECD0); /* Windows: 0x1541ECD0, Mac OSX: 0x00000000 */
-		buffer.putInt(0x01000000); /* Windows: 0x01000000, Mac OSX: 0x01040000 */
-		buffer.putInt(this.session.clientId); /* 4 bytes, Windows: 0x010B0029, Mac OSX: 0x026A0200 */
-		buffer.putInt(0x00000001); /* Unknown */
+		buffer.putInt(0x00000000); /* Unknown */
+		buffer.putInt(0x01000000); /* Unknown */
+		buffer.putInt(this.session.clientId); /* 4 bytes */
+		buffer.putInt(0x00000000); /* Unknown */
 		buffer.put(this.session.clientRandom); /* 16 bytes */
 		buffer.put(this.session.dhClientKeyPair.getPublicKeyBytes()); /* 96 bytes */
 		buffer.put(this.session.rsaClientKeyPair.getPublicKeyBytes()); /* 128 bytes */
@@ -123,7 +123,7 @@ public class Protocol {
 		buffer.putShort((short)0x0100); /* Unknown */
 		/* Random bytes here... */
 		buffer.put(this.session.username);
-		buffer.put((byte)0x5F);/* Minor protocol version. */
+		buffer.put((byte)0x48); /* Unknown. Flags?: x1xx1?xx. x: 0 or 1 works, ?: sometimes 0 or 1 works - old jotify 0x5F, despotify 0x40 */
 		
 		/* Update length byte. */
 		buffer.putShort(2, (short)buffer.position());
