@@ -317,9 +317,10 @@ public class Justifyx extends JotifyConnection{
 			// Create directory
 			if(parent != null && !file.getParentFile().exists()) file.getParentFile().mkdirs();
 
+			
 			// Get replacement track. Sometimes it gets the same track
-			if(justifyx.replacement(track).getId() != null)
-				track = justifyx.replacement(track);
+			Track tmptrack = justifyx.replacement(track);
+			if (tmptrack.getId() != null) track = tmptrack;
 			
 			// Check restrictions and parse alternative files checking their restrictions
 			boolean allowed = true;
