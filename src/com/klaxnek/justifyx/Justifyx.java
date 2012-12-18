@@ -452,7 +452,7 @@ public class Justifyx extends JotifyConnection{
 		else
 			nombre = nombre.replaceAll("/", "\\\\");
 
-		nombre = nombre.replaceAll("[\\\\/:*?\"<>|]", "_");
+		nombre = nombre.replaceAll("[\\\\/:*?\"<>|\\$]", "_");
 
 		return nombre;
 	}
@@ -476,7 +476,7 @@ public class Justifyx extends JotifyConnection{
 					objeto = method.invoke(objeto, new Object[0]);
 				}
 
-				regexMatcher.appendReplacement(resultString, (String)objeto);
+				regexMatcher.appendReplacement(resultString, sanearNombre((String)objeto));
 			}
 			regexMatcher.appendTail(resultString);
 		} catch (Exception e){ throw new JustifyxException(e); }
