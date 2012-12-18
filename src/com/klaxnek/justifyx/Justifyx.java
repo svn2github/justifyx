@@ -322,13 +322,17 @@ public class Justifyx extends JotifyConnection{
 			Integer nalternative = 0;
             Integer talternative = 0;
             
-            if(track.getRestrictions().get(0).getForbidden() != null)
-                    if(track.getRestrictions().get(0).getForbidden().contains(country) == true)
-                            allowed = false;
+            for(int i=0; i<track.getRestrictions().size(); i++) {
+            	if(track.getRestrictions().get(i).getForbidden() != null)
+                    if(track.getRestrictions().get(i).getForbidden().contains(country) == true)
+                    	allowed = false;
                                     
-            if(track.getRestrictions().get(0).getAllowed() != null)
-                    if (track.getRestrictions().get(0).getAllowed().contains(country) == false)
-                            allowed = false;
+            	if(track.getRestrictions().get(i).getAllowed() != null)
+                    if (track.getRestrictions().get(i).getAllowed().contains(country) == false)
+                    	allowed = false;
+                    else
+                    	allowed = true;
+            }
             
             if (!allowed) {
                     for(Track pista : track.getAlternatives()) {
